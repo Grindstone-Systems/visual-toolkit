@@ -83,15 +83,15 @@ export function Builder({
   const view = stage === "3d" && !hasSpatial ? "single" : stage;
   // Colours are baked for the state at build time; the viewer switches state live.
   const glb = useMemo(
-    () => (hasSpatial && view === "3d" ? spatialGlb(vo, gen.spatial!(params), { style: design.style, theme: design.theme, state: "normal", paint: design.paint }) : null),
-    [hasSpatial, view, vo, gen, params, design.style, design.theme, design.paint],
+    () => (hasSpatial && view === "3d" ? spatialGlb(vo, gen.spatial!(params), { style: design.style, theme: design.theme, state: "normal", paint: design.paint, tokens: design.tokens }) : null),
+    [hasSpatial, view, vo, gen, params, design.style, design.theme, design.paint, design.tokens],
   );
   const [animate, setAnimate] = useState(true);
   const [dragging, setDragging] = useState(false);
 
-  const opts = { style: design.style, theme: design.theme, state: design.state, animate, paint: design.paint };
-  const svg = useMemo(() => renderSvg(vo, { ...opts, idPrefix: "stage" }), [vo, design.style, design.theme, design.state, animate]);
-  const exportFile = useMemo(() => exportSvg(vo, opts), [vo, design.style, design.theme, design.state, animate]);
+  const opts = { style: design.style, theme: design.theme, state: design.state, animate, paint: design.paint, tokens: design.tokens };
+  const svg = useMemo(() => renderSvg(vo, { ...opts, idPrefix: "stage" }), [vo, design.style, design.theme, design.state, animate, design.tokens]);
+  const exportFile = useMemo(() => exportSvg(vo, opts), [vo, design.style, design.theme, design.state, animate, design.tokens]);
 
   const set = <K extends keyof Design>(k: K, v: Design[K]) => setDesign((d) => ({ ...d, [k]: v }));
   const setParam = (key: string, v: ParamValue) =>
@@ -430,8 +430,8 @@ function ParamControl({ def, value, onChange }: { def: ParamDef; value: ParamVal
 export function Thumb({ generator, design }: { generator: string; design: Design }) {
   const html = useMemo(() => {
     const vo = generate(generator, { ...design.params[generator], label: "" });
-    return renderSvg(vo, { style: design.style, theme: design.theme, state: "normal", idPrefix: `thumb-${generator.replace(/\W/g, "")}`, animate: false, embedRecipe: false });
-  }, [generator, design.params, design.style, design.theme]);
+    return renderSvg(vo, { style: design.style, theme: design.theme, tokens: design.tokens, state: "normal", idPrefix: `thumb-${generator.replace(/\W/g, "")}`, animate: false, embedRecipe: false });
+  }, [generator, design.params, design.style, design.theme, design.tokens]);
   return <span className="thumb" dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
@@ -441,9 +441,9 @@ function SheetView({ vo, design, onPick }: { vo: VtObject; design: Design; onPic
     () =>
       STYLE_OPTIONS.map((st) => ({
         style: st,
-        svgs: STATES.map((s) => renderSvg(vo, { style: st.id, theme: design.theme, state: s, idPrefix: `sh-${st.id}-${s}`, embedRecipe: false })),
+        svgs: STATES.map((s) => renderSvg(vo, { style: st.id, theme: design.theme, tokens: design.tokens, state: s, idPrefix: `sh-${st.id}-${s}`, embedRecipe: false })),
       })),
-    [vo, design.theme],
+    [vo, design.theme, design.tokens],
   );
   return (
     <div className="sheet" style={{ ["--cell-aspect" as string]: `${vo.viewBox[2]} / ${vo.viewBox[3]}` }}>
@@ -483,8 +483,8 @@ const LIVE_SCRIPT: StateName[] = ["running", "running", "warning", "running", "f
 function LiveView({ vo, design }: { vo: VtObject; design: Design }) {
   const host = useRef<HTMLDivElement>(null);
   const html = useMemo(
-    () => renderSvg(vo, { style: design.style, theme: design.theme, state: "running", mode: "themable", idPrefix: "live", embedRecipe: false }),
-    [vo, design.style, design.theme],
+    () => renderSvg(vo, { style: design.style, theme: design.theme, tokens: design.tokens, state: "running", mode: "themable", idPrefix: "live", embedRecipe: false }),
+    [vo, design.style, design.theme, design.tokens],
   );
   const hasLevel = vo.regions.some((r) => r.level);
   const [tick, setTick] = useState(0);

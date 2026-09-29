@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { applyRecipe, designFromCode, designLink, initialDesign, type Design } from "./design.ts";
 import { GALLERY } from "./gallery.ts";
 import { Overview } from "./pages/Overview.tsx";
+import { ThemeEditor } from "./pages/ThemeEditor.tsx";
 import { ToolStatusPage } from "./pages/ToolStatusPage.tsx";
 import { Shell, type Command } from "./shell/Shell.tsx";
 import { ALL_PAGES, groupOf, hrefOf, pageById, parseHash, type PageId, type Route } from "./shell/tools.ts";
@@ -60,8 +61,8 @@ export function App() {
   useEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = theme.scheme;
-    for (const [k, v] of Object.entries(theme.tokens)) root.style.setProperty(tokenVar(k as never), v);
-  }, [theme]);
+    for (const [k, v] of Object.entries({ ...theme.tokens, ...design.tokens })) root.style.setProperty(tokenVar(k as never), v);
+  }, [theme, design.tokens]);
 
   const navigate = useCallback((page: PageId) => {
     setRoute({ page });
@@ -121,6 +122,9 @@ export function App() {
           }}
         />
       );
+      break;
+    case "themes.editor":
+      content = <ThemeEditor design={design} setDesign={setDesign} openBuilder={() => navigate("symbols.builder")} />;
       break;
     case "spatial.models":
       content = (

@@ -3,7 +3,9 @@ import {
   RECIPE_SCHEMA,
   STATES,
   PAINTS,
+  TOKENS,
   type PaintId,
+  type TokenName,
   type ParamValues,
   type Recipe,
   type StateName,
@@ -21,6 +23,23 @@ export interface Design {
   state: StateName;
   /** 3D paint. */
   paint: PaintId;
+  /** Theme overrides from the theme editor (brand tokens; state colours stay protected). */
+  tokens: Partial<Record<TokenName, string>>;
+}
+
+/** State and alarm colours are protected: the theme editor never changes them. */
+export const PROTECTED = (t: TokenName) => t.startsWith("state.");
+
+/** Keep only known, non-protected tokens with #rrggbb values (recipes are untrusted). */
+export function sanitizeTokens(t: unknown): Partial<Record<TokenName, string>> {
+  const out: Partial<Record<TokenName, string>> = {};
+  if (!t || typeof t !== "object") return out;
+  for (const [k, v] of Object.entries(t as Record<string, unknown>)) {
+    if ((TOKENS as readonly string[]).includes(k) && !PROTECTED(k as TokenName) && typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v)) {
+      out[k as TokenName] = v.toLowerCase();
+    }
+  }
+  return out;
 }
 
 const STYLES: StyleId[] = ["high-performance", "modern-flat", "outline"];
@@ -33,6 +52,7 @@ export const initialDesign = (): Design => ({
   theme: "light",
   state: "running",
   paint: "slate",
+  tokens: {},
 });
 
 export function toRecipe(d: Design): Recipe {
@@ -46,6 +66,7 @@ export function toRecipe(d: Design): Recipe {
     theme: d.theme,
     state: d.state,
     ...(d.paint !== "slate" ? { paint: d.paint } : {}),
+    ...(Object.keys(d.tokens).length ? { tokens: d.tokens } : {}),
   };
 }
 
@@ -60,6 +81,7 @@ export function applyRecipe(d: Design, r: Recipe): Design {
     theme: THEMES.includes(r.theme) ? r.theme : d.theme,
     state: STATES.includes(r.state) ? r.state : d.state,
     paint: r.paint && PAINTS.includes(r.paint) ? r.paint : "slate",
+    tokens: sanitizeTokens(r.tokens),
   };
 }
 
