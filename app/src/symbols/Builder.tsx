@@ -45,7 +45,7 @@ export const STYLE_OPTIONS: { id: StyleId; label: string; hint: string }[] = [
   { id: "outline", label: "Outline", hint: "Linework; diagrams and print" },
 ];
 
-const STATE_TOKEN: Record<StateName, Parameters<typeof tokenVar>[0]> = {
+export const STATE_TOKEN: Record<StateName, Parameters<typeof tokenVar>[0]> = {
   normal: "state.stopped",
   running: "state.running",
   warning: "state.warning",
@@ -446,7 +446,7 @@ function SharePanel({ design, notify, onOpenFile }: { design: Design; notify: (m
   );
 }
 
-function ParamControl({ def, value, onChange }: { def: ParamDef; value: ParamValue; onChange: (v: ParamValue) => void }) {
+export function ParamControl({ def, value, onChange }: { def: ParamDef; value: ParamValue; onChange: (v: ParamValue) => void }) {
   switch (def.type) {
     case "choice":
       return (

@@ -1,7 +1,11 @@
 import { FONT, renderSvg, type RenderOptions } from "../render.ts";
 import { decodeJsonCode, encodeJsonCode } from "../share.ts";
 import { cylinder, emptyMesh, roundedDisc, sweep, type Mesh } from "../spatial/mesh.ts";
+import { slugify } from "../exporters.ts";
+import { spatialGlb } from "../spatial/export.ts";
+import { hexToLinear, writeGlb } from "../spatial/gltf.ts";
 import { STYLES } from "../styles.ts";
+import { zip, type ZipEntry } from "../zip.ts";
 import { getTheme, type TokenSet } from "../themes.ts";
 import { generate, getGenerator } from "../symbols/index.ts";
 import { STATES, type ParamValues, type Port, type SpatialModel, type SpatialPort, type StateName, type StyleId, type ThemeId, type TokenName, type Vec3, type VtObject } from "../types.ts";
@@ -223,6 +227,10 @@ export interface SceneRenderOptions {
   idPrefix?: string;
   /** Draw every port (editor affordance). */
   showPorts?: boolean;
+  /** Fixed viewBox, so the frame doesn't jump while an item is dragged. */
+  viewBox?: [number, number, number, number];
+  /** Editor selection outlines. */
+  highlight?: { item?: string; pipe?: string; port?: PipeEnd };
 }
 
 export function sceneBounds(placed: PlacedItem[], padding = 20): [number, number, number, number] {
@@ -259,7 +267,9 @@ export function renderSceneSvg(scene: Scene, opts: SceneRenderOptions): string {
   const prefix = opts.idPrefix ?? "scene";
   const tokens = { ...getTheme(opts.theme).tokens, ...opts.tokens } as Record<TokenName, string>;
   const placed = scene.items.map(placeItem);
-  const [bx, by, bw, bh] = sceneBounds(placed, opts.padding ?? 24);
+  const [bx, by, bw, bh] = opts.viewBox ?? sceneBounds(placed, opts.padding ?? 24);
+  const hl = opts.highlight ?? {};
+  const accent = tokens["state.maintenance"];
   const routes = pipeRoutes(scene, placed);
   const animate = opts.animate ?? true;
 
@@ -269,6 +279,7 @@ export function renderSceneSvg(scene: Scene, opts: SceneRenderOptions): string {
       const flow = flowing && animate ? ` class="vt-flow"` : "";
       return (
         `<g class="vt-pipe" data-pipe="${esc(pipe.id)}">` +
+        (hl.pipe === pipe.id ? `<path d="${d}" fill="none" stroke="${accent}" stroke-opacity="0.45" stroke-width="${size * 0.62 + 9}" stroke-linejoin="round"/>` : "") +
         `<path d="${d}" fill="none" stroke="${tokens["equipment.outline"]}" stroke-width="${size * 0.62 + 2.2}" stroke-linejoin="round" stroke-linecap="butt"/>` +
         `<path d="${d}" fill="none" stroke="${tokens["equipment.secondary"]}" stroke-width="${size * 0.62}" stroke-linejoin="round" stroke-linecap="butt"/>` +
         (flowing
@@ -299,7 +310,11 @@ export function renderSceneSvg(scene: Scene, opts: SceneRenderOptions): string {
         vo.label?.text && at
           ? `<text class="vt-label" x="${at[0]}" y="${at[1]}" text-anchor="middle" dominant-baseline="middle" font-family="${esc(FONT)}" font-size="8" font-weight="600" letter-spacing="0.4" fill="${tokens["text.primary"]}">${esc(vo.label.text)}</text>`
           : "";
-      return `<g class="vt-item" data-item="${esc(item.id)}"><g transform="${t.join(" ")}">${inner}</g>${label}</g>`;
+      const sel =
+        hl.item === item.id
+          ? `<rect x="${item.x - 5}" y="${item.y - 5}" width="${w + 10}" height="${h + 10}" rx="6" fill="none" stroke="${accent}" stroke-width="1.4" stroke-dasharray="5 4"/>`
+          : "";
+      return `<g class="vt-item" data-item="${esc(item.id)}">${sel}<g transform="${t.join(" ")}">${inner}</g>${label}</g>`;
     })
     .join("");
 
@@ -308,7 +323,7 @@ export function renderSceneSvg(scene: Scene, opts: SceneRenderOptions): string {
         .flatMap((p) =>
           p.ports.map(
             (q) =>
-              `<circle class="vt-port" data-item="${esc(p.item.id)}" data-port="${esc(q.id)}" cx="${q.sx}" cy="${q.sy}" r="3.2" fill="${tokens["state.maintenance"]}" stroke="${tokens["surface.canvas"]}" stroke-width="1.2"/>`,
+              `<circle class="vt-port" data-item="${esc(p.item.id)}" data-port="${esc(q.id)}" cx="${q.sx}" cy="${q.sy}" r="${hl.port?.item === p.item.id && hl.port.port === q.id ? 5.5 : 3.6}" fill="${accent}" stroke="${tokens["surface.canvas"]}" stroke-width="1.4"><title>${esc(`${p.item.id} · ${q.id}`)}</title></circle>`,
           ),
         )
         .join("")
@@ -405,10 +420,16 @@ export function pipeRuns3d(scene: Scene, placed = place3d(scene)) {
     const a = byId.get(pipe.from.item)?.ports.find((p) => p.id === pipe.from.port);
     const b = byId.get(pipe.to.item)?.ports.find((p) => p.id === pipe.to.port);
     if (!a || !b) return [];
-    const stub = 0.18;
-    const A1: Vec3 = [a.world[0] + a.worldDir[0] * stub, a.world[1] + a.worldDir[1] * stub, a.world[2] + a.worldDir[2] * stub];
-    const B1: Vec3 = [b.world[0] + b.worldDir[0] * stub, b.world[1] + b.worldDir[1] * stub, b.world[2] + b.worldDir[2] * stub];
-    const rack = Math.max(A1[1], B1[1]) + 0.22;
+    // Straight out of each port; a downward stub stops short of the floor.
+    const out = (q: typeof a): Vec3 => {
+      const len = q.worldDir[1] < -0.5 ? Math.max(0.04, Math.min(0.18, (q.world[1] - 0.1) / -q.worldDir[1])) : 0.18;
+      return [q.world[0] + q.worldDir[0] * len, q.world[1] + q.worldDir[1] * len, q.world[2] + q.worldDir[2] * len];
+    };
+    const A1 = out(a);
+    const B1 = out(b);
+    // Runs go over a rack above both ends, or low under the equipment when an end points down (bottom outlets).
+    const down = a.worldDir[1] < -0.5 || b.worldDir[1] < -0.5;
+    const rack = down ? Math.min(A1[1], B1[1]) : Math.max(A1[1], B1[1]) + 0.22;
     const pts: Vec3[] = [a.world, A1, [A1[0], rack, A1[2]], [B1[0], rack, A1[2]], [B1[0], rack, B1[2]], [B1[0], B1[1], B1[2]], b.world];
     const clean: Vec3[] = [];
     for (const p of pts) {
@@ -474,4 +495,54 @@ export function pipeMeshes(scene: Scene, radius = 0.045): { id: string; mesh: Me
     void cylinder;
     return { id: pipe.id, mesh: m, flowing, path: points };
   });
+}
+
+/* ------------------------------ scene kit ------------------------------ */
+
+export interface SceneKitOptions {
+  style: StyleId;
+  theme: ThemeId;
+  tokens?: Partial<TokenSet>;
+}
+
+/**
+ * Everything a 3D consumer (Dimension Engine, three.js, Blender) needs to
+ * rebuild the layout: one vt.spatial .glb per item (in its current state),
+ * pipes.glb in world space, and scene.json with the placements. The 2D mimic
+ * SVG comes along too.
+ */
+export function exportSceneKit(scene: Scene, opts: SceneKitOptions): { filename: string; entries: ZipEntry[]; bytes: Uint8Array } {
+  const base = slugify(scene.name || "scene");
+  const placed = place3d(scene) as (Placed3d & { centre: Vec3 })[];
+  const entries: ZipEntry[] = [];
+  for (const p of placed) {
+    const vo = generate(p.item.generator, p.item.params, p.item.version);
+    entries.push({ path: `models/${p.item.id}.glb`, content: spatialGlb(vo, p.model, { style: opts.style, theme: opts.theme, tokens: opts.tokens, state: p.item.state }) });
+  }
+  const pipes = pipeMeshes(scene);
+  if (pipes.length) {
+    entries.push({
+      path: "pipes.glb",
+      content: writeGlb({
+        name: "pipes",
+        materials: [{ name: "vt-role-nozzle--steel", color: hexToLinear("#a7adb1"), alpha: 1, metallic: 0.75, roughness: 0.34 }],
+        nodes: pipes.map((q) => ({ name: q.id, mesh: q.mesh, material: 0, translation: [0, 0, 0], extras: { vt: { pipe: q.id, flowing: q.flowing, path: q.path } } })),
+        animations: [],
+        extras: { vt: { schema: SCENE_SCHEMA, kind: "pipes" } },
+      }),
+    });
+  }
+  const layout = {
+    ...scene,
+    layout3d: {
+      units: "metres",
+      metresPerUnit: METRES_PER_UNIT,
+      transform: "T(position) · Ry(rotationY) · S(mirror ? -1 : 1, 1, 1) · T(-centre)",
+      items: placed.map((p) => ({ id: p.item.id, model: `models/${p.item.id}.glb`, state: p.item.state, position: p.position, rotationY: p.rotationY, mirror: p.mirror, centre: p.centre })),
+      pipes: pipes.length ? "pipes.glb" : null,
+    },
+  };
+  entries.push({ path: "scene.json", content: JSON.stringify(layout, null, 2) });
+  entries.push({ path: `${base}.svg`, content: renderSceneSvg(scene, { style: opts.style, theme: opts.theme, tokens: opts.tokens }) });
+  return { filename: `${base}-scene-kit.zip`, entries, bytes: zip(entries) };
 }

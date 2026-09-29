@@ -4,6 +4,7 @@ import {
   decodeSceneCode,
   demoScene,
   encodeSceneCode,
+  exportSceneKit,
   nextItemId,
   parseScene,
   pipeMeshes,
@@ -144,6 +145,26 @@ describe("3D layout", () => {
     expect(Math.hypot(s0[0], s0[2])).toBeCloseTo(Math.hypot(s1[0], s1[2]), 6);
     expect(s0[0] * s1[0] + s0[2] * s1[2]).toBeCloseTo(0, 6);
     expect(s1[1]).toBeCloseTo(s0[1], 6);
+  });
+
+  it("routes low under the equipment from a bottom outlet", () => {
+    const scene = demoScene();
+    const placed = place3d(scene);
+    const tank = placed.find((p) => p.item.id === "tank-1")!.ports.find((p) => p.id === "outlet")!;
+    const valve = placed.find((p) => p.item.id === "valve-1")!.ports.find((p) => p.id === "inlet")!;
+    const run = pipeMeshes(scene).find((p) => p.id === "l-1")!.path;
+    // No rack above the equipment: the run never climbs past the higher end.
+    expect(Math.max(...run.map((p) => p[1]))).toBeLessThanOrEqual(Math.max(tank.world[1], valve.world[1]) + 1e-6);
+    expect(Math.min(...run.map((p) => p[1]))).toBeGreaterThan(0.05);
+  });
+
+  it("exports a scene kit with a model per item and the pipes", () => {
+    const kit = exportSceneKit(demoScene(), { style: "modern-flat", theme: "light" });
+    const paths = kit.entries.map((e) => e.path);
+    expect(paths).toEqual(expect.arrayContaining(["models/tank-1.glb", "models/pump-1.glb", "pipes.glb", "scene.json", "transfer-skid.svg"]));
+    const layout = JSON.parse(kit.entries.find((e) => e.path === "scene.json")!.content as string);
+    expect(layout.layout3d.items).toHaveLength(4);
+    expect(kit.filename).toBe("transfer-skid-scene-kit.zip");
   });
 
   it("builds valid pipe meshes that start and end on the ports", () => {
