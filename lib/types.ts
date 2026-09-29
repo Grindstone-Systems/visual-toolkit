@@ -40,6 +40,8 @@ export const REGION_ROLES = [
   "detail", // non-structural linework (vanes, fins, seams) — stroke only
   "rotor", // moving element; target of rotation hints
   "indicator", // status lamp / hub that carries state colour
+  "fill", // process medium inside a vessel (liquid level)
+  "product", // material being handled (boxes on a conveyor)
 ] as const;
 export type RegionRole = (typeof REGION_ROLES)[number];
 
@@ -55,6 +57,8 @@ export const TOKENS = [
   "equipment.outline",
   "equipment.detail",
   "equipment.base",
+  "process.liquid",
+  "process.material",
   "state.running",
   "state.stopped",
   "state.warning",
@@ -87,9 +91,16 @@ export interface Region {
   /** "solid" = fill + outline, "line" = stroke only. */
   paint: "solid" | "line";
   shapes: Shape[];
+  /** Clip the region to this shape (e.g. liquid inside a vessel wall). */
+  clip?: Shape;
+  /**
+   * Level-driven region: shapes are drawn at 100 % and scaled vertically
+   * from `bottom`. `value` is 0–1. Smart SVGs expose it as --vt-level.
+   */
+  level?: { value: number; bottom: number };
 }
 
-export type PortKind = "inlet" | "outlet" | "bidirectional" | "signal" | "power";
+export type PortKind = "inlet" | "outlet" | "bidirectional" | "signal" | "power" | "mechanical";
 
 export interface Port {
   id: string;
@@ -105,8 +116,10 @@ export interface Port {
 
 export type AnimationHint =
   | { id: string; type: "rotate"; region: string; origin: [number, number]; states: StateName[]; periodMs: number }
-  | { id: string; type: "flow"; port: string; states: StateName[] }
-  | { id: string; type: "pulse"; region: string; states: StateName[] };
+  /** Seamless slide by one pattern pitch (conveyor chevrons, product). */
+  | { id: string; type: "flow"; region: string; vector: [number, number]; states: StateName[]; periodMs: number }
+  /** Side-view rotation illusion (agitator blades): scaleX 1 → −1 → 1. */
+  | { id: string; type: "turn"; region: string; origin: [number, number]; states: StateName[]; periodMs: number };
 
 export interface Identity {
   /** Equipment family, e.g. "pump". */

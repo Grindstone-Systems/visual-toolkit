@@ -10,6 +10,7 @@ import {
   type TokenName,
   type VtObject,
 } from "./types.ts";
+import { round } from "./geometry.ts";
 import { getTheme, tokenVar, type TokenSet } from "./themes.ts";
 import { getStyle, resolvePaint, type BadgeKind, type Paint, type Style } from "./styles.ts";
 
@@ -153,18 +154,30 @@ function animationCss(
   stateSelector: (s: StateName) => string,
 ): string {
   const rules: string[] = [];
+  const frames = new Set<string>();
   for (const a of vo.animations ?? []) {
-    if (a.type !== "rotate") continue;
     const active = states.filter((s) => a.states.includes(s) && style.states[s].animate);
     if (!active.length) continue;
     const sel = active.map((s) => `${stateSelector(s)}#${prefix}-${a.region}`).join(",");
-    rules.push(
-      `${sel}{transform-box:view-box;transform-origin:${a.origin[0]}px ${a.origin[1]}px;animation:${prefix}-spin ${a.periodMs}ms linear infinite}`,
-    );
+    if (a.type === "rotate") {
+      frames.add(`@keyframes ${prefix}-spin{to{transform:rotate(360deg)}}`);
+      rules.push(
+        `${sel}{transform-box:view-box;transform-origin:${a.origin[0]}px ${a.origin[1]}px;animation:${prefix}-spin ${a.periodMs}ms linear infinite}`,
+      );
+    } else if (a.type === "turn") {
+      frames.add(`@keyframes ${prefix}-turn{50%{transform:scaleX(-1)}}`);
+      rules.push(
+        `${sel}{transform-box:view-box;transform-origin:${a.origin[0]}px ${a.origin[1]}px;animation:${prefix}-turn ${a.periodMs}ms ease-in-out infinite}`,
+      );
+    } else {
+      const name = `${prefix}-${a.id}`;
+      frames.add(`@keyframes ${name}{to{transform:translate(${a.vector[0]}px,${a.vector[1]}px)}}`);
+      rules.push(`${sel}{animation:${name} ${a.periodMs}ms linear infinite}`);
+    }
   }
   if (!rules.length) return "";
   return (
-    `@keyframes ${prefix}-spin{to{transform:rotate(360deg)}}` +
+    [...frames].join("") +
     rules.join("") +
     `@media (prefers-reduced-motion:reduce){.vt-region{animation:none!important}}`
   );
@@ -172,13 +185,39 @@ function animationCss(
 
 /* ---------------------------- render ---------------------------- */
 
-function regionGroup(r: Region, prefix: string, attrs: string, cls = ""): string {
+/**
+ * One region: `<g id>` carrying paint, optionally wrapped in a clip group
+ * (so animation/level transforms never move the clip) and scaled by level.
+ */
+function regionGroup(r: Region, prefix: string, attrs: string, mode: "resolved" | "themable", defs: string[]): string {
   const label = r.label ? ` aria-label="${esc(r.label)}"` : "";
-  return (
-    `<g id="${prefix}-${r.id}" class="vt-region vt-role--${r.role} vt-paint--${r.paint}${cls}" data-region="${r.id}"${label}${attrs}>` +
+  let transform = "";
+  if (r.level && mode === "resolved") {
+    const v = Math.min(1, Math.max(0, r.level.value));
+    transform = ` transform="matrix(1 0 0 ${round(v)} 0 ${round(r.level.bottom * (1 - v))})"`;
+  }
+  let g =
+    `<g id="${prefix}-${r.id}" class="vt-region vt-role--${r.role} vt-paint--${r.paint}" data-region="${r.id}"${label}${attrs}${transform}>` +
     r.shapes.map((s) => shapeEl(s)).join("") +
-    `</g>`
-  );
+    `</g>`;
+  if (r.clip) {
+    const clipId = `${prefix}-${r.id}-clip`;
+    defs.push(`<clipPath id="${clipId}">${shapeEl(r.clip)}</clipPath>`);
+    g = `<g clip-path="url(#${clipId})">${g}</g>`;
+  }
+  return g;
+}
+
+/** Smart-SVG rules for level regions: host sets --vt-level (0–1) on the SVG. */
+function levelCss(vo: VtObject, prefix: string): string {
+  return vo.regions
+    .filter((r) => r.level)
+    .map(
+      (r) =>
+        `#${prefix}-${r.id}{transform-box:view-box;transform-origin:0 ${r.level!.bottom}px;` +
+        `transform:scale(1,var(--vt-level,${r.level!.value}));transition:transform .9s cubic-bezier(.3,.7,.2,1)}`,
+    )
+    .join("");
 }
 
 export function recipeFor(vo: VtObject, o: Pick<RenderOptions, "style" | "theme" | "state" | "tokens">): Recipe {
@@ -234,7 +273,7 @@ export function renderSvg(vo: VtObject, opts: RenderOptions): string {
 
   if (mode === "resolved") {
     for (const r of vo.regions) {
-      parts.push(regionGroup(r, prefix, paintAttrs(resolvePaint(style, state, r.role, r.paint), literal)));
+      parts.push(regionGroup(r, prefix, paintAttrs(resolvePaint(style, state, r.role, r.paint), literal), "resolved", defs));
     }
     if (treatment.hatch && bodyRegions.length) {
       parts.push(
@@ -253,7 +292,9 @@ export function renderSvg(vo: VtObject, opts: RenderOptions): string {
         css.push(`${sel(s)} .vt-role--${r.role}.vt-paint--${r.paint}{${paintCss(resolvePaint(style, s, r.role, r.paint), cssVar)}}`);
       }
     }
-    for (const r of vo.regions) parts.push(regionGroup(r, prefix, ""));
+    for (const r of vo.regions) parts.push(regionGroup(r, prefix, "", "themable", defs));
+    css.push(levelCss(vo, prefix));
+    css.push(`.vt-region,.vt-badge{transition:fill .35s,stroke .35s,opacity .35s}`);
     if (bodyRegions.length && anyHatch) {
       parts.push(
         `<g class="vt-hatch" fill="url(#${prefix}-hatch)" stroke="none" pointer-events="none">` +

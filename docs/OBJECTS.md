@@ -33,4 +33,14 @@ The same generator version with the same params must always produce the same obj
 There are two modes:
 
 - **Resolved** (default) uses literal colours for one state. It works everywhere: `<img>`, Ignition, Figma, Inkscape.
-- **Smart** embeds all states, switched by the root `data-vt-state` attribute. Colours are `var(--vt-*, fallback)` so a host page can re-theme it.
+- **Smart** embeds all states, switched by the root `data-vt-state` attribute. Colours are `var(--vt-*, fallback)` so a host page can re-theme it. Level-driven regions (tank contents) follow `--vt-level` (0–1) with a smooth transition.
+
+## Motion hints
+
+| Hint | Used for |
+| --- | --- |
+| `rotate` | impellers, fans, pulleys |
+| `turn` | side-view rotation illusion (agitator blades) |
+| `flow` | seamless slide by one pattern pitch (belt chevrons, product) |
+
+Motion plays only in states whose style allows it, and it respects `prefers-reduced-motion`.

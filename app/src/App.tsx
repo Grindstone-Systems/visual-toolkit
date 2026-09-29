@@ -9,7 +9,7 @@ import {
 import { STATES, type ParamDef, type ParamValue, type StateName, type StyleId, type ThemeId, type VtObject } from "../../lib/index.ts";
 import { FAMILIES, getGenerator, generate } from "../../lib/index.ts";
 import { getTheme, tokenVar } from "../../lib/index.ts";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   designFromCode,
   designFromFile,
@@ -159,6 +159,7 @@ function Builder({
   const params = design.params[gen.id]!;
   const vo = useMemo(() => gen.generate(params), [gen, params]);
   const [showPorts, setShowPorts] = useState(false);
+  const [stageView, setStageView] = useState<"single" | "sheet" | "live">("single");
   const [animate, setAnimate] = useState(true);
   const [dragging, setDragging] = useState(false);
 
@@ -247,22 +248,48 @@ function Builder({
         }}
       >
         <div className="stage-tools">
-          <label className="check">
-            <input type="checkbox" checked={showPorts} onChange={(e) => setShowPorts(e.target.checked)} /> Ports
-          </label>
-          <label className="check">
-            <input type="checkbox" checked={animate} onChange={(e) => setAnimate(e.target.checked)} /> Motion
-          </label>
+          <Segmented
+            value={stageView}
+            options={[
+              { value: "single", label: "Symbol" },
+              { value: "sheet", label: "All states", title: "Every style × state at once" },
+              { value: "live", label: "Live", title: "Drive the smart SVG like an HMI would" },
+            ]}
+            onChange={setStageView}
+          />
+          {stageView === "single" && (
+            <div className="checks">
+              <label className="check">
+                <input type="checkbox" checked={showPorts} onChange={(e) => setShowPorts(e.target.checked)} /> Ports
+              </label>
+              <label className="check">
+                <input type="checkbox" checked={animate} onChange={(e) => setAnimate(e.target.checked)} /> Motion
+              </label>
+            </div>
+          )}
         </div>
 
-        <div className="canvas">
-          <div className="symbol" style={{ aspectRatio: `${vo.viewBox[2]} / ${vo.viewBox[3]}`, width: `min(100%, ${vo.viewBox[2] * 4}px)` }}>
-            <div className="symbol-svg" dangerouslySetInnerHTML={{ __html: svg }} />
-            {showPorts && <PortsOverlay vo={vo} />}
+        {stageView === "single" && (
+          <div className="canvas">
+            <div className="symbol" style={{ aspectRatio: `${vo.viewBox[2]} / ${vo.viewBox[3]}`, width: `min(100%, ${vo.viewBox[2] * 4}px)` }}>
+              <div className="symbol-svg" dangerouslySetInnerHTML={{ __html: svg }} />
+              {showPorts && <PortsOverlay vo={vo} />}
+            </div>
           </div>
-        </div>
+        )}
+        {stageView === "sheet" && (
+          <SheetView
+            vo={vo}
+            design={design}
+            onPick={(style, state) => {
+              setDesign((d) => ({ ...d, style, state }));
+              setStageView("single");
+            }}
+          />
+        )}
+        {stageView === "live" && <LiveView vo={vo} design={design} />}
 
-        <div className="states" role="radiogroup" aria-label="Operating state">
+        <div className={`states${stageView === "single" ? "" : " hidden"}`} role="radiogroup" aria-label="Operating state">
           <span className="step-label">
             <b>4</b> Preview state
           </span>
@@ -528,6 +555,103 @@ function Thumb({ generator, design }: { generator: string; design: Design }) {
     return renderSvg(vo, { style: design.style, theme: design.theme, state: "normal", idPrefix: `thumb-${generator.replace(/\W/g, "")}`, animate: false, embedRecipe: false });
   }, [generator, design.params, design.style, design.theme]);
   return <span className="thumb" dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
+/** Every style × state for the current configuration — the family at a glance. */
+function SheetView({ vo, design, onPick }: { vo: VtObject; design: Design; onPick: (s: StyleId, st: StateName) => void }) {
+  const cells = useMemo(
+    () =>
+      STYLE_OPTIONS.map((st) => ({
+        style: st,
+        svgs: STATES.map((s) => renderSvg(vo, { style: st.id, theme: design.theme, state: s, idPrefix: `sh-${st.id}-${s}`, embedRecipe: false })),
+      })),
+    [vo, design.theme],
+  );
+  return (
+    <div className="sheet" style={{ ["--cell-aspect" as string]: `${vo.viewBox[2]} / ${vo.viewBox[3]}` }}>
+      <div className="sheet-grid">
+        <span />
+        {STATES.map((s) => (
+          <span key={s} className="sheet-head">
+            {s === "comm-loss" ? "Comm loss" : stateLabel(s)}
+          </span>
+        ))}
+        {cells.map(({ style, svgs }) => (
+          <Fragment key={style.id}>
+            <span className="sheet-row">{style.label}</span>
+            {svgs.map((html, i) => (
+              <button
+                key={i}
+                className={`sheet-cell${design.style === style.id && design.state === STATES[i] ? " on" : ""}`}
+                onClick={() => onPick(style.id, STATES[i]!)}
+                title={`${style.label} · ${stateLabel(STATES[i]!)}`}
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            ))}
+          </Fragment>
+        ))}
+      </div>
+      <p className="hint">21 variants from one definition. Click any cell to use it.</p>
+    </div>
+  );
+}
+
+const LIVE_SCRIPT: StateName[] = ["running", "running", "warning", "running", "fault", "maintenance", "normal", "comm-loss", "running", "disabled"];
+
+/**
+ * Live: one smart SVG, driven exactly as an HMI would drive it — by setting
+ * data-vt-state and --vt-level on the element. Nothing is re-rendered.
+ */
+function LiveView({ vo, design }: { vo: VtObject; design: Design }) {
+  const host = useRef<HTMLDivElement>(null);
+  const html = useMemo(
+    () => renderSvg(vo, { style: design.style, theme: design.theme, state: "running", mode: "themable", idPrefix: "live", embedRecipe: false }),
+    [vo, design.style, design.theme],
+  );
+  const hasLevel = vo.regions.some((r) => r.level);
+  const [tick, setTick] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const state = LIVE_SCRIPT[Math.floor(tick / 2) % LIVE_SCRIPT.length]!;
+  const level = Math.round((0.52 + 0.36 * Math.sin(tick * 0.55)) * 100) / 100;
+
+  useEffect(() => {
+    if (!playing) return;
+    const t = window.setInterval(() => setTick((n) => n + 1), 1300);
+    return () => window.clearInterval(t);
+  }, [playing]);
+
+  useEffect(() => {
+    const svg = host.current?.querySelector("svg");
+    if (!svg) return;
+    svg.dataset.vtState = state;
+    if (hasLevel) svg.style.setProperty("--vt-level", String(level));
+  }, [html, state, level, hasLevel]);
+
+  return (
+    <div className="live">
+      <div className="canvas">
+        <div className="symbol" style={{ aspectRatio: `${vo.viewBox[2]} / ${vo.viewBox[3]}`, width: `min(100%, ${vo.viewBox[2] * 4}px)` }}>
+          <div className="symbol-svg" ref={host} dangerouslySetInnerHTML={{ __html: html }} />
+        </div>
+      </div>
+      <div className="live-hud">
+        <button className="live-play" onClick={() => setPlaying((p) => !p)} aria-label={playing ? "Pause" : "Play"}>
+          {playing ? "❚❚" : "▶"}
+        </button>
+        <code>
+          <span className="c">// one smart SVG · your HMI sets two things</span>
+          <br />
+          svg.dataset.vtState = <b>"{state}"</b>;
+          {hasLevel && (
+            <>
+              <br />
+              svg.style.setProperty("--vt-level", <b>{level.toFixed(2)}</b>);
+            </>
+          )}
+        </code>
+      </div>
+    </div>
+  );
 }
 
 function PortsOverlay({ vo }: { vo: VtObject }) {

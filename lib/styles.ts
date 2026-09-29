@@ -58,6 +58,8 @@ const highPerformance: Style = {
     detail: { stroke: "equipment.detail", strokeWidth: 1 },
     rotor: { fill: "none", stroke: "equipment.detail", strokeWidth: 1.25 },
     indicator: { fill: "equipment.secondary", stroke: "equipment.outline", strokeWidth: 1.25 },
+    fill: { fill: "process.liquid", stroke: "none", opacity: 0.85 },
+    product: { fill: "equipment.secondary", stroke: "equipment.outline", strokeWidth: 1 },
   },
   states: {
     normal: {},
@@ -102,6 +104,8 @@ const modernFlat: Style = {
     detail: { stroke: "equipment.detail", strokeWidth: 0.9 },
     rotor: { fill: "none", stroke: "equipment.body-strong", strokeWidth: 1.5 },
     indicator: { fill: "state.stopped", stroke: "none" },
+    fill: { fill: "process.liquid", stroke: "none" },
+    product: { fill: "process.material", stroke: "equipment.detail", strokeWidth: 0.9 },
   },
   states: {
     normal: {},
@@ -137,6 +141,8 @@ const outline: Style = {
     detail: { stroke: "equipment.detail", strokeWidth: 1 },
     rotor: { fill: "none", stroke: "equipment.outline", strokeWidth: 1.25 },
     indicator: { fill: "none", stroke: "equipment.outline", strokeWidth: 1.5 },
+    fill: { fill: "process.liquid", stroke: "none", opacity: 0.45 },
+    product: { fill: "none", stroke: "equipment.outline", strokeWidth: 1.25 },
   },
   states: {
     normal: {},

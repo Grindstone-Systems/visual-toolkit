@@ -1,0 +1,23 @@
+{
+  "title": "TEFC motor, fan end",
+  "author": "Grindstone-Systems",
+  "description": "End view with the cooling fan turning behind its guard.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "motor.induction",
+    "version": 0,
+    "params": {
+      "view": "end",
+      "size": "medium",
+      "mount": "foot",
+      "shaft": "right",
+      "detail": "standard",
+      "label": "M-101"
+    },
+    "style": "high-performance",
+    "theme": "dark",
+    "state": "running"
+  }
+}

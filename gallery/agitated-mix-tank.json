@@ -1,0 +1,24 @@
+{
+  "title": "Agitated mix tank",
+  "author": "Grindstone-Systems",
+  "description": "Dished vertical tank with top-entry agitator and live level.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "tank.process",
+    "version": 0,
+    "params": {
+      "orientation": "vertical",
+      "bottom": "dished",
+      "level": 64,
+      "agitator": true,
+      "supports": true,
+      "gauge": true,
+      "label": "TK-301"
+    },
+    "style": "modern-flat",
+    "theme": "light",
+    "state": "running"
+  }
+}

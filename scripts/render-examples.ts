@@ -13,8 +13,11 @@ mkdirSync(out, { recursive: true });
 
 const styles: StyleId[] = ["high-performance", "modern-flat", "outline"];
 const themes: ThemeId[] = ["light", "dark"];
-const variants: Record<string, Record<string, string | boolean>[]> = {
+const variants: Record<string, Record<string, string | number | boolean>[]> = {
   "pump.centrifugal": [{}, { discharge: "side", inlet: "right", driver: "none", detail: "detailed" }, { detail: "simple", base: false, label: "" }],
+  "motor.induction": [{}, { view: "end" }, { mount: "flange", size: "large", shaft: "left", detail: "detailed" }],
+  "tank.process": [{}, { bottom: "cone", level: 25, agitator: false }, { orientation: "horizontal", level: 80 }],
+  "conveyor.belt": [{}, { direction: "left", drive: "tail", load: "bulk", length: 4 }, { length: 10, load: "none", drive: "none" }],
   "valve.two-way": [{}, { body: "ball", actuator: "motor" }, { actuator: "manual", orientation: "vertical" }],
 };
 

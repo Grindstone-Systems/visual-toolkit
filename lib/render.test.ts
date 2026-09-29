@@ -81,3 +81,30 @@ describe("recipes", () => {
     await expect(decodeShareCode("j0." + btoa("[1,2]"))).rejects.toThrow();
   });
 });
+
+describe("smart behaviours", () => {
+  const tank = generate("tank.process", { level: 40 });
+  const conveyor = generate("conveyor.belt", {});
+
+  it("bakes the tank level into resolved SVG and clips liquid to the shell", () => {
+    const svg = renderSvg(tank, { ...base, state: "normal" });
+    expect(svg).toContain('<clipPath id="process-tank-contents-clip">');
+    expect(svg).toMatch(/id="process-tank-contents"[^>]*transform="matrix\(1 0 0 0\.4 0 /);
+  });
+
+  it("exposes the level as --vt-level in smart SVG", () => {
+    const svg = renderSvg(tank, { ...base, mode: "themable" });
+    expect(svg).toContain("var(--vt-level,0.4)");
+  });
+
+  it("slides conveyor flow and product only while running", () => {
+    const running = renderSvg(conveyor, { ...base, state: "running" });
+    expect(running).toContain("@keyframes belt-conveyor-belt-flow");
+    expect(running).toContain("@keyframes belt-conveyor-product-flow");
+    expect(renderSvg(conveyor, base)).not.toContain("@keyframes");
+  });
+
+  it("turns the agitator in side view", () => {
+    expect(renderSvg(tank, { ...base, state: "running" })).toContain("@keyframes process-tank-turn");
+  });
+});

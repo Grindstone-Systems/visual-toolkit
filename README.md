@@ -4,7 +4,7 @@
 
 Pick a piece of equipment and shape it. Preview its operating states, switch style and theme, then export clean SVG for Ignition, the web or any HMI that takes SVG. Everything runs in the browser, so there is no account and no server.
 
-> Status: **vertical slice.** It has two procedural families (centrifugal pump, process valve), 3 styles, Light/Dark themes and 7 operating states. Exports: SVG, smart SVG, PNG, an Ignition kit and `.vt.json`. Sharing works through links, files and a pull-request gallery.
+> Status: **Symbols MVP.** It has five procedural families (pump, valve, motor, tank, conveyor), 3 styles, Light/Dark themes and 7 operating states. Tanks have live fill levels, and conveyors show moving product. An **All states** sheet shows every style × state at once, and **Live** mode drives a single smart SVG the way an HMI would. Exports: SVG, smart SVG, PNG, an Ignition kit and `.vt.json`. Sharing works through links, files and a pull-request gallery.
 
 ## Quick start
 
@@ -23,7 +23,7 @@ One repository, one package:
 | Path | What it is |
 | --- | --- |
 | `lib/` | The engine: types, geometry, styles, themes, SVG renderer, share codes, exporters |
-| `lib/symbols/` | Procedural generators (`pump.ts`, `valve.ts`) and their registry |
+| `lib/symbols/` | Procedural generators (pump, valve, motor, tank, conveyor) and their registry |
 | `app/` | The builder (React + Vite, fully static) |
 | `gallery/` | Shared designs as small JSON recipes, added by pull request |
 | `examples/web/` | A plain HTML page driving a smart SVG |
