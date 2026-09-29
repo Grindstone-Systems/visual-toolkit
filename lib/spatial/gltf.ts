@@ -31,11 +31,21 @@ export interface GltfRotation {
   periodS: number;
 }
 
+/** Keyframed channels on one node (translation / scale), linear, looping. */
+export interface GltfKeyframes {
+  name: string;
+  node: number;
+  times: number[];
+  translation?: Vec3[];
+  scale?: Vec3[];
+}
+
 export interface GltfDocument {
   name: string;
   nodes: GltfNode[];
   materials: GltfMaterial[];
   animations: GltfRotation[];
+  keyframes?: GltfKeyframes[];
   extras: Record<string, unknown>;
 }
 
@@ -111,6 +121,27 @@ export function writeGlb(doc: GltfDocument): Uint8Array {
       channels: [{ sampler: 0, target: { node: a.node, path: "rotation" } }],
     };
   });
+
+  for (const k of doc.keyframes ?? []) {
+    const input = addAccessor({
+      bufferView: addView(f32(k.times)),
+      componentType: 5126,
+      count: k.times.length,
+      type: "SCALAR",
+      min: [Math.min(...k.times)],
+      max: [Math.max(...k.times)],
+    });
+    const samplers: Record<string, unknown>[] = [];
+    const channels: Record<string, unknown>[] = [];
+    for (const path of ["translation", "scale"] as const) {
+      const vals = k[path];
+      if (!vals) continue;
+      const output = addAccessor({ bufferView: addView(f32(vals.flat().map((v) => Math.round(v * 1e5) / 1e5))), componentType: 5126, count: vals.length, type: "VEC3" });
+      samplers.push({ input, output, interpolation: "LINEAR" });
+      channels.push({ sampler: samplers.length - 1, target: { node: k.node, path } });
+    }
+    animations.push({ name: k.name, samplers, channels } as (typeof animations)[number]);
+  }
 
   const json = {
     asset: { version: "2.0", generator: "Visual Toolkit (Grindstone Systems)" },

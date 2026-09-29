@@ -190,7 +190,24 @@ export interface SpatialNode {
   translation: Vec3;
   /** Surface finish; decides metalness/roughness. Colour still comes from the role. */
   finish?: Finish;
+  /** Cut away (with the section plane) in cutaway views to reveal the internals. */
+  section?: boolean;
+  /** Only shown in cutaway views (internals such as the impeller). */
+  internal?: boolean;
 }
+
+/** A node scaled on Y from `bottom` to follow a 0–1 level (tank contents, sight glass). */
+export interface SpatialLevel {
+  node: string;
+  bottom: number;
+  top: number;
+  value: number;
+}
+
+/** Renderer-drawn effects, described as data so any engine can implement them. */
+export type SpatialEffect =
+  | { type: "vibration"; states: StateName[]; amplitude: number; frequencyHz: number }
+  | { type: "ripple"; node: string; states: StateName[]; amplitude: number };
 
 export type Finish = "paint" | "cast" | "steel" | "lens" | "rubber";
 
@@ -201,14 +218,30 @@ export interface SpatialPort {
   direction: Vec3;
 }
 
-export interface SpatialAnimation {
-  id: string;
-  /** Node rotated about its pivot, along a local axis. */
-  node: string;
-  axis: "x" | "y" | "z";
-  periodMs: number;
-  states: StateName[];
-}
+export type SpatialAnimation =
+  | {
+      id: string;
+      type?: "spin";
+      /** Node rotated about its pivot, along a local axis. */
+      node: string;
+      axis: "x" | "y" | "z";
+      /** Spin the negative way round the axis. */
+      reverse?: boolean;
+      periodMs: number;
+      states: StateName[];
+    }
+  | {
+      id: string;
+      type: "slide";
+      /** Node moved by `vector` per period, looping (conveyor product). */
+      node: string;
+      vector: Vec3;
+      /** Grow in / shrink out at the ends so the loop has no visible pop. */
+      fadeIn?: boolean;
+      fadeOut?: boolean;
+      periodMs: number;
+      states: StateName[];
+    };
 
 /** Stylised 3D model in metres, +Y up, ready to become glTF. */
 export interface SpatialModel {
@@ -217,6 +250,13 @@ export interface SpatialModel {
   animations: SpatialAnimation[];
   /** Where a renderer should float the state badge. */
   badge: Vec3;
+  levels?: SpatialLevel[];
+  effects?: SpatialEffect[];
+  /**
+   * Cutaway section plane (normal points at the side that is removed).
+   * Renderers clip `section` nodes against it when cutaway is on.
+   */
+  sectionPlane?: { normal: Vec3; offset: number };
 }
 
 /* ------------------------------------------------------------------ */

@@ -2,7 +2,15 @@
 
 A generator can also build a **stylised 3D model** from the same parameters as its 2D symbol. It exports as standard **glTF 2.0 binary (`.glb`)**, which three.js, Babylon, PlayCanvas, Blender and most other 3D tools open. Visual Toolkit metadata rides inside the file, in `extras`, so a renderer can switch operating state at runtime.
 
-Status: **proof with one family (centrifugal pump).** Every pump configuration passes the Khronos glTF validator with zero errors (tested in `lib/spatial/spatial.test.ts`).
+Status: **all five families** (pump, valve, motor, tank, conveyor). Every configuration of every family passes the Khronos glTF validator with zero errors, faces outward and is byte-for-byte deterministic (`lib/spatial/spatial.test.ts`).
+
+| Family | 3D highlights |
+| --- | --- |
+| Centrifugal pump | Spiral volute, bolted flanges, bearing frame, coupling, finned TEFC motor. Cutaway shows the impeller spinning |
+| Process valve | Cast body, bonnet, pneumatic / motor / handwheel actuators. Cutaway shows the gate wedge or bored ball |
+| Induction motor | Foot or flange mount, three frame sizes. Cutaway shows the rotor and winding end-turns |
+| Process tank | Ellipsoidal or cone bottom, sight glass that follows the level, manway, agitator. Cutaway shows the liquid and the impeller |
+| Belt conveyor | Procedural length, idlers, gearmotor, cleats and cartons or bulk material sliding along the belt |
 
 ## What is shared with the 2D symbol
 
@@ -47,6 +55,21 @@ Status: **proof with one family (centrifugal pump).** Every pump configuration p
 }
 ```
 
+## Beyond state: cutaway, levels and effects
+
+These are all optional. A renderer that ignores them still shows a correct model.
+
+| Metadata | Meaning | Reference behaviour |
+| --- | --- | --- |
+| `sectionPlane` `{ normal, offset }` | Cutaway plane. The normal points at the side that is removed | Clip nodes with `extras.vt.section`. Draw revealed back faces as a dark interior with an orange band at the cut edge |
+| node `extras.vt.internal` | Shown only in cutaway (impeller, ball, rotor, tank contents) | Hide unless cutaway is on |
+| `levels[]` `{ node, bottom, top, value }` | A node that follows a 0–1 level. Its pivot sits at `bottom` | `node.scale.y = level` (tank contents, sight-glass column) |
+| `effects[]` `vibration` | Shake in listed states (for example warning) | Offset the model by `amplitude · sin(2π·f·t)` |
+| animations `type: "slide"` | glTF translate/scale clips that loop seamlessly by one pitch; items grow in at the tail and shrink out at the head | Play like any clip |
+| animations `reverse` | Spin the negative way round the axis (conveyor pulleys running right) | Already baked into the clip |
+
+The builder's 3D view has **Cutaway**, a **Level** slider and three environments: **Studio** (a shadow-catcher floor on the page colour), **Plant floor** (tiled concrete, warm key light) and **Night** (dark, cyan rim light, glowing grid).
+
 ## Switching state at runtime (any renderer)
 
 1. Read `extras.vt.states[newState]`.
@@ -67,7 +90,8 @@ Dimension Engine's Spatial Scene currently loads Gaussian-splat captures (a `gsp
 2. **Read `extras.vt`.** Parse the GLB's JSON chunk (12-byte header, then the JSON chunk; `readGlbJson` in `lib/spatial/gltf.ts` is about ten lines) to get `states`, `animations`, `ports` and `badge`.
 3. **Bind state to telemetry.** Per placed model, add a state signal. Map the tag value to one of the seven state names, then apply the four steps above. Treat stale or bad-quality data as `comm-loss`, which matches Dimension Engine's existing freshness handling.
 4. **Selection.** Raise the existing `onEquipmentSelected` event when a model is clicked, passing the model id and part id (the node name).
-5. Later: **level** for tanks. Planned as `extras.vt.levels`, with a node scaled on Y from a base height, mirroring the 2D `--vt-level`.
+5. **Levels:** bind a tag to each `levels[]` entry and scale that node on Y. This mirrors the 2D `--vt-level`.
+6. **Cutaway (optional):** PlayCanvas can clip with a custom shader chunk or a clipping plane uniform. Toggle it per model.
 
 Verify the exact PlayCanvas 2.x calls (container instantiation, material updates, anim component) against its docs when implementing. This document defines the file contract, not Dimension Engine's internals.
 

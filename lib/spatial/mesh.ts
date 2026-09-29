@@ -331,3 +331,55 @@ export function appendRotated(m: Mesh, part: Mesh, axis: Axis, angle: number, pi
   for (const idx of part.indices) m.indices.push(base + idx);
   return m;
 }
+
+/**
+ * Curved blade: a strip between two curves in the plane perpendicular to
+ * `axis`, extruded from w0 to w1. Curves are [u, v] points (as `cylinder`
+ * centres) and must have the same length. Used for impeller vanes.
+ */
+export function blade(m: Mesh, axis: Axis, a: [number, number][], b: [number, number][], w0: number, w1: number): Mesh {
+  const f = frame(axis);
+  const n = a.length;
+  const outline = [...a, ...b.slice().reverse()];
+  const L = outline.length;
+  let area = 0;
+  for (let i = 0; i < L; i++) {
+    const p = outline[i]!;
+    const q = outline[(i + 1) % L]!;
+    area += p[0] * q[1] - q[0] * p[1];
+  }
+  const ccw = area > 0;
+  // Caps (strip triangulation, safe for thin concave crescents); winding
+  // follows the outline direction so caps face outward either way round.
+  for (const [w, dir] of [
+    [w0, -1],
+    [w1, 1],
+  ] as const) {
+    const nrm = f(0, 0, dir);
+    const A = a.map((p) => push(m, f(p[0], p[1], w), nrm));
+    const B = b.map((p) => push(m, f(p[0], p[1], w), nrm));
+    const forward = (dir > 0) === ccw;
+    for (let i = 0; i + 1 < n; i++) {
+      if (forward) m.indices.push(A[i]!, A[i + 1]!, B[i + 1]!, A[i]!, B[i + 1]!, B[i]!);
+      else m.indices.push(A[i]!, B[i + 1]!, A[i + 1]!, A[i]!, B[i]!, B[i + 1]!);
+    }
+  }
+  // Sides: flat-shaded walls around the outline.
+  for (let i = 0; i < L; i++) {
+    const p = outline[i]!;
+    const q = outline[(i + 1) % L]!;
+    const du = q[0] - p[0];
+    const dv = q[1] - p[1];
+    const len = Math.hypot(du, dv) || 1;
+    const nu = (ccw ? dv : -dv) / len;
+    const nv = (ccw ? -du : du) / len;
+    const nrm = f(nu, nv, 0);
+    const i0 = push(m, f(p[0], p[1], w0), nrm);
+    const i1 = push(m, f(q[0], q[1], w0), nrm);
+    const i2 = push(m, f(q[0], q[1], w1), nrm);
+    const i3 = push(m, f(p[0], p[1], w1), nrm);
+    if (ccw) m.indices.push(i0, i1, i2, i0, i2, i3);
+    else m.indices.push(i0, i2, i1, i0, i3, i2);
+  }
+  return m;
+}

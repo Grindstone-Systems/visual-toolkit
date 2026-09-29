@@ -1,6 +1,7 @@
 import { Geo } from "../geometry.ts";
 import { OBJECT_SCHEMA, type AnimationHint, type Generator, type Port, type Region, type Shape, type VtObject } from "../types.ts";
 import { labelLayout, sanitizeParams } from "./params.ts";
+import { processTank3d } from "./tank3d.ts";
 
 /**
  * Process tank — vertical (dished or cone bottom) or horizontal vessel with a
@@ -42,6 +43,9 @@ export const processTank: Generator = {
     { key: "gauge", label: "Level gauge", type: "toggle", default: true },
     { key: "label", label: "Tag label", type: "text", maxLength: 12, default: "TK-301" },
   ],
+  spatial(raw) {
+    return processTank3d(sanitizeParams(this.params, raw));
+  },
   generate(raw): VtObject {
     const p = sanitizeParams(this.params, raw);
     const parts = p.orientation === "horizontal" ? horizontal(p) : vertical(p);

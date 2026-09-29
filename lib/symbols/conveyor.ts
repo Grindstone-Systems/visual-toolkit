@@ -1,6 +1,7 @@
 import { Geo } from "../geometry.ts";
 import { OBJECT_SCHEMA, type AnimationHint, type Generator, type Region, type Shape, type VtObject } from "../types.ts";
 import { labelLayout, sanitizeParams } from "./params.ts";
+import { beltConveyor3d } from "./conveyor3d.ts";
 
 /**
  * Belt conveyor. Length is procedural: stretch it and the carrying idlers,
@@ -55,6 +56,9 @@ export const beltConveyor: Generator = {
     { key: "supports", label: "Supports", type: "toggle", default: true },
     { key: "label", label: "Tag label", type: "text", maxLength: 12, default: "CV-401" },
   ],
+  spatial(raw) {
+    return beltConveyor3d(sanitizeParams(this.params, raw));
+  },
   generate(raw): VtObject {
     const p = sanitizeParams(this.params, raw);
     const g = new Geo();

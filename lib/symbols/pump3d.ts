@@ -1,5 +1,6 @@
 import {
   appendRotated,
+  blade,
 
   cylinder,
   emptyMesh,
@@ -10,6 +11,7 @@ import {
   sweep,
   type Mesh,
 } from "../spatial/mesh.ts";
+import { addBeacon, addMotorBody } from "./motor3d.ts";
 import type { Finish, ParamValues, RegionRole, SpatialModel, SpatialNode, SpatialPort, Vec3 } from "../types.ts";
 
 /**
@@ -35,11 +37,20 @@ export function centrifugalPump3d(p: ParamValues): SpatialModel {
   const floor = p.base ? 0.07 : 0;
   const nodes: SpatialNode[] = [];
 
-  const add = (id: string, role: RegionRole, label: string, finish: Finish, build: (m: Mesh) => void, pivot: Vec3 = [0, 0, 0]) => {
+  const add = (
+    id: string,
+    role: RegionRole,
+    label: string,
+    finish: Finish,
+    build: (m: Mesh) => void,
+    pivot: Vec3 = [0, 0, 0],
+    flags: { section?: boolean; internal?: boolean } = {},
+  ) => {
     const m = emptyMesh();
     build(m);
-    nodes.push({ id, role, label, finish, mesh: m, translation: pivot });
+    nodes.push({ id, role, label, finish, mesh: m, translation: pivot, ...flags });
   };
+  const cut = { section: true };
 
   const x1 = motor ? 1.1 : 0.5;
 
@@ -79,18 +90,18 @@ export function centrifugalPump3d(p: ParamValues): SpatialModel {
       [0.095, -0.06],
       [0, -0.06],
     ], seg);
-  });
+  }, [0, 0, 0], cut);
   add("suction-flange", "flange", "Suction flange", "cast", (m) => {
     roundedDisc(m, "x", [AY, 0], 0.125, -0.345, -0.31, 0.006, seg);
     roundedDisc(m, "x", [AY, 0], 0.095, -0.352, -0.34, 0.003, seg); // raised face
-  });
+  }, [0, 0, 0], cut);
   if (fine) {
     add("suction-bolts", "detail", "Flange bolts", "steel", (m) => {
       for (let k = 0; k < 8; k++) {
         const a = (k / 8) * Math.PI * 2 + Math.PI / 8;
         cylinder(m, "x", [AY + Math.cos(a) * 0.105, Math.sin(a) * 0.105], 0.011, -0.36, -0.3, HEX);
       }
-    });
+    }, [0, 0, 0], cut);
   }
 
   /* ---------------- volute ---------------- */
@@ -136,7 +147,7 @@ export function centrifugalPump3d(p: ParamValues): SpatialModel {
       [0, 0.2],
     ], seg + 8);
     sweep(m, scroll.map(place), radii, fine ? 32 : 18);
-  });
+  }, [0, 0, 0], cut);
   const outlet = place([0, nozzleLen, rhoEnd]);
   add("discharge-flange", "flange", "Discharge flange", "cast", (m) => {
     const c: [number, number] = top ? [outlet[2], outlet[0]] : [outlet[0], outlet[1]];
@@ -144,7 +155,7 @@ export function centrifugalPump3d(p: ParamValues): SpatialModel {
     const w = top ? outlet[1] : outlet[2];
     roundedDisc(m, ax, c, 0.11, w - 0.005, w + 0.03, 0.006, seg);
     roundedDisc(m, ax, c, 0.082, w + 0.028, w + 0.038, 0.003, seg);
-  });
+  }, [0, 0, 0], cut);
   if (fine) {
     add("discharge-bolts", "detail", "Flange bolts", "steel", (m) => {
       for (let k = 0; k < 8; k++) {
@@ -153,14 +164,44 @@ export function centrifugalPump3d(p: ParamValues): SpatialModel {
         if (top) cylinder(m, "y", [outlet[2] + Math.sin(a) * d, outlet[0] + Math.cos(a) * d], 0.01, outlet[1] - 0.01, outlet[1] + 0.045, HEX);
         else cylinder(m, "z", [outlet[0] + Math.cos(a) * d, outlet[1] + Math.sin(a) * d], 0.01, outlet[2] - 0.01, outlet[2] + 0.045, HEX);
       }
-    });
+    }, [0, 0, 0], cut);
     add("casing-bolts", "detail", "Casing bolts", "steel", (m) => {
       for (let k = 0; k < 10; k++) {
         const a = (k / 10) * Math.PI * 2;
         cylinder(m, "x", [AY + Math.cos(a) * 0.14, Math.sin(a) * 0.14], 0.009, 0.066, 0.084, HEX);
       }
-    });
+    }, [0, 0, 0], cut);
   }
+
+  /* ---------------- impeller (visible in cutaway) ---------------- */
+  add(
+    "impeller",
+    "detail", // cast-metal grey in every style; rotation comes from its animation
+    "Impeller",
+    "cast",
+    (m) => {
+      const vanes = fine ? 6 : 5;
+      // Back shroud, hub and front shroud ring with the eye open to the suction.
+      roundedDisc(m, "x", [0, 0], 0.15, 0.028, 0.04, 0.004, seg);
+      lathe(m, "x", [0, 0], [[0, -0.02], [0.03, -0.02], [0.034, 0.028], [0, 0.028]], 28);
+      lathe(m, "x", [0, 0], [[0.062, -0.042], [0.15, -0.036], [0.15, -0.028], [0.066, -0.032], [0.062, -0.042]], seg);
+      for (let k = 0; k < vanes; k++) {
+        const t0 = (k / vanes) * Math.PI * 2;
+        const A: [number, number][] = [];
+        const B: [number, number][] = [];
+        for (let i = 0; i <= 14; i++) {
+          const r = 0.036 + (i / 14) * (0.148 - 0.036);
+          const th = t0 + (r - 0.036) * 6.2; // backward-curved
+          const tt = th + 0.0075 / r;
+          A.push([Math.cos(th) * r, Math.sin(th) * r]);
+          B.push([Math.cos(tt) * r, Math.sin(tt) * r]);
+        }
+        blade(m, "x", A, B, -0.032, 0.03);
+      }
+    },
+    [0, AY, 0],
+    { internal: true },
+  );
 
   /* ---------------- bearing frame and shaft ---------------- */
   add("bearing-frame", "body-secondary", "Bearing frame", "paint", (m) => {
@@ -181,7 +222,7 @@ export function centrifugalPump3d(p: ParamValues): SpatialModel {
     }
   });
   add("shaft", "detail", "Shaft", "steel", (m) => {
-    cylinder(m, "x", [AY, 0], 0.024, 0.34, motor ? 0.4 : 0.47, 24);
+    cylinder(m, "x", [AY, 0], 0.024, -0.02, motor ? 0.4 : 0.47, 24);
   });
 
   /* ---------------- rotating element ---------------- */
@@ -206,79 +247,11 @@ export function centrifugalPump3d(p: ParamValues): SpatialModel {
     [rotorX, AY, 0],
   );
 
-  /* ---------------- motor ---------------- */
-  if (motor) {
-    const M0 = 0.455;
-    const M1 = 0.98;
-    add("motor", "body-secondary", "Motor", "paint", (m) => {
-      lathe(m, "x", [AY, 0], [
-        [0, M0],
-        [0.1, M0],
-        [0.14, M0 + 0.01],
-        [0.165, M0 + 0.035],
-        [0.172, M0 + 0.06],
-        [0.172, M1 - 0.05],
-        [0.165, M1 - 0.025],
-        [0.14, M1],
-        [0, M1],
-      ], seg + 8);
-      // Terminal box with lid and cable gland.
-      roundedBox(m, [0.64, AY + 0.14, -0.08], [0.8, AY + 0.25, 0.08], 0.014);
-      roundedBox(m, [0.632, AY + 0.245, -0.088], [0.808, AY + 0.265, 0.088], 0.008, 2);
-      cylinder(m, "z", [0.72, AY + 0.19], 0.018, 0.08, 0.11, 20);
-    });
-    if (fine) {
-      add("motor-fins", "body-secondary", "Cooling fins", "paint", (m) => {
-        const n = detail === "detailed" ? 28 : 20;
-        const fin = emptyMesh();
-        roundedBox(fin, [M0 + 0.07, AY + 0.165, -0.006], [M1 - 0.06, AY + 0.198, 0.006], 0.004, 2);
-        for (let k = 0; k < n; k++) {
-          const a = (k / n) * Math.PI * 2;
-          if (Math.cos(a) > 0.82) continue; // clear the terminal box on top
-          appendRotated(m, fin, "x", a, [0, AY, 0]);
-        }
-      });
-    }
-    add("fan-cover", "body-secondary", "Fan cover", "paint", (m) => {
-      lathe(m, "x", [AY, 0], [
-        [0, M1 - 0.01],
-        [0.16, M1 - 0.01],
-        [0.168, M1 + 0.01],
-        [0.168, M1 + 0.09],
-        [0.155, M1 + 0.115],
-        [0.12, M1 + 0.125],
-        [0, M1 + 0.125],
-      ], seg);
-    });
-    if (fine) {
-      add("fan-grille", "detail", "Fan guard", "steel", (m) => {
-        for (const rr of [0.035, 0.065, 0.095, 0.125]) {
-          const ring: Vec3[] = [];
-          for (let k = 0; k <= 48; k++) {
-            const a = (k / 48) * Math.PI * 2;
-            ring.push([M1 + 0.129, AY + Math.cos(a) * rr, Math.sin(a) * rr]);
-          }
-          sweep(m, ring, 0.0045, 8, false);
-        }
-      });
-    }
-  }
-
-  /* ---------------- status beacon ---------------- */
-  const bx = motor ? 0.72 : 0.28;
-  const by = motor ? AY + 0.265 : AY + 0.085;
-  add("beacon-base", "body-secondary", "Beacon base", "paint", (m) => {
-    roundedDisc(m, "y", [0, bx], 0.03, by, by + 0.02, 0.004, 28);
-  });
-  add("status-hub", "indicator", "Status beacon", "lens", (m) => {
-    const prof: [number, number][] = [[0, by + 0.018], [0.024, by + 0.018]];
-    for (let k = 0; k <= 8; k++) {
-      const t = (k / 8) * (Math.PI / 2);
-      prof.push([0.024 * Math.cos(t), by + 0.05 + 0.026 * Math.sin(t)]);
-    }
-    prof.splice(2, 0, [0.024, by + 0.05]);
-    lathe(m, "y", [0, bx], prof, 32);
-  });
+  /* ---------------- motor and beacon ---------------- */
+  const beaconAt: Vec3 = motor
+    ? addMotorBody(add, { M0: 0.455, M1: 0.98, AY, R: 0.172, detail, seg })
+    : [0.28, AY + 0.085, 0];
+  addBeacon(add, beaconAt);
 
   const ports: SpatialPort[] = [
     { id: "suction", kind: "inlet", position: [-0.352, AY, 0], direction: [-1, 0, 0] },
@@ -294,7 +267,12 @@ export function centrifugalPump3d(p: ParamValues): SpatialModel {
   const model: SpatialModel = {
     nodes,
     ports,
-    animations: [{ id: "impeller-spin", node: "coupling", axis: "x", periodMs: 700, states: ["running"] }],
+    animations: [
+      { id: "impeller-spin", node: "coupling", axis: "x", periodMs: 700, states: ["running"] },
+      { id: "impeller-inner-spin", node: "impeller", axis: "x", periodMs: 700, states: ["running"] },
+    ],
+    effects: [{ type: "vibration", states: ["warning"], amplitude: 0.0012, frequencyHz: 22 }],
+    sectionPlane: { normal: [0, 0, 1], offset: 0 },
     badge: [-0.24, AY + RD + 0.34, 0],
   };
   return mirror ? mirrorModel(model) : model;
@@ -307,6 +285,8 @@ function mirrorModel(model: SpatialModel): SpatialModel {
     ports: model.ports.map((p) => ({ ...p, position: mx(p.position), direction: mx(p.direction) })),
     animations: model.animations,
     badge: mx(model.badge),
+    ...(model.effects ? { effects: model.effects } : {}),
+    ...(model.sectionPlane ? { sectionPlane: model.sectionPlane } : {}),
   };
 }
 

@@ -1,6 +1,7 @@
 import { Geo, identity, rotate90 } from "../geometry.ts";
 import { OBJECT_SCHEMA, type Generator, type Region, type Shape, type VtObject } from "../types.ts";
 import { labelLayout, sanitizeParams } from "./params.ts";
+import { processValve3d } from "./valve3d.ts";
 
 /**
  * Two-way process valve — gate or ball body with optional actuator.
@@ -54,6 +55,9 @@ export const processValve: Generator = {
     { key: "flanges", label: "Flanges", type: "toggle", default: true },
     { key: "label", label: "Tag label", type: "text", maxLength: 12, default: "XV-201" },
   ],
+  spatial(raw) {
+    return processValve3d(sanitizeParams(this.params, raw));
+  },
   generate(raw): VtObject {
     const p = sanitizeParams(this.params, raw);
     const vertical = p.orientation === "vertical";

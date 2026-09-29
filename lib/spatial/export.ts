@@ -74,7 +74,8 @@ export function spatialLooks(roles: RegionRole[], opts: Pick<RenderOptions, "sty
         else if (role === "flange") color = CAST[dark]!;
       }
       if (s === "fault" && role === "body") emissive = 0.035;
-      map.roles[role] = { color, opacity: paint.opacity ?? 1, emissive };
+      // Liquids are slightly translucent so internals read through them.
+      map.roles[role] = { color, opacity: role === "fill" ? Math.min(0.82, paint.opacity ?? 1) : (paint.opacity ?? 1), emissive };
       if (s === "fault" && role === "body") map.roles[role]!.glow = tokens["state.fault"];
     }
     out[s] = map;
@@ -117,14 +118,50 @@ export function spatialGlb(vo: VtObject, model: SpatialModel, opts: RenderOption
       mesh: n.mesh,
       material: keys.indexOf(materialName(n.role, n.finish)),
       translation: n.translation,
-      extras: { vt: { region: n.id, role: n.role, label: n.label, finish: n.finish ?? "paint" } },
+      extras: {
+        vt: {
+          region: n.id,
+          role: n.role,
+          label: n.label,
+          finish: n.finish ?? "paint",
+          ...(n.section ? { section: true } : {}),
+          ...(n.internal ? { internal: true } : {}),
+        },
+      },
     })),
-    animations: model.animations.map((a) => ({
-      name: a.id,
-      node: nodeIndex.get(a.node)!,
-      axis: a.axis === "x" ? [1, 0, 0] : a.axis === "y" ? [0, 1, 0] : [0, 0, 1],
-      periodS: a.periodMs / 1000,
-    })),
+    animations: model.animations.flatMap((a) =>
+      a.type === "slide"
+        ? []
+        : [
+            {
+              name: a.id,
+              node: nodeIndex.get(a.node)!,
+              axis: (a.axis === "x" ? [1, 0, 0] : a.axis === "y" ? [0, 1, 0] : [0, 0, 1]).map((c) => (a.reverse ? -c : c)) as [number, number, number],
+              periodS: a.periodMs / 1000,
+            },
+          ],
+    ),
+    keyframes: model.animations.flatMap((a) => {
+      if (a.type !== "slide") return [];
+      const node = model.nodes.find((n) => n.id === a.node)!;
+      const T = a.periodMs / 1000;
+      const p0 = node.translation;
+      const at = (f: number): [number, number, number] => [p0[0] + a.vector[0] * f, p0[1] + a.vector[1] * f, p0[2] + a.vector[2] * f];
+      const fr = [0, 0.18, 0.82, 1];
+      const one: [number, number, number] = [1, 1, 1];
+      const zero: [number, number, number] = [0.001, 0.001, 0.001];
+      return [
+        {
+          name: a.id,
+          node: nodeIndex.get(a.node)!,
+          times: fr.map((f) => f * T),
+          translation: fr.map(at),
+          ...(a.fadeIn || a.fadeOut
+            ? { scale: [a.fadeIn ? zero : one, one, one, a.fadeOut ? zero : one] as [number, number, number][] }
+            : {}),
+        },
+      ];
+    }),
     extras: {
       vt: {
         schema: SPATIAL_SCHEMA,
@@ -138,9 +175,12 @@ export function spatialGlb(vo: VtObject, model: SpatialModel, opts: RenderOption
         states: Object.fromEntries(
           STATES.filter((s) => vo.states.includes(s)).map((s) => [s, { label: stateLabel(s), ...looks[s] }]),
         ),
-        animations: model.animations.map((a) => ({ id: a.id, node: a.node, axis: a.axis, periodMs: a.periodMs, states: a.states, gltfAnimation: a.id })),
+        animations: model.animations.map((a) => ({ ...a, type: a.type ?? "spin", gltfAnimation: a.id })),
         ports: model.ports,
         badge: model.badge,
+        levels: model.levels ?? [],
+        effects: model.effects ?? [],
+        ...(model.sectionPlane ? { sectionPlane: model.sectionPlane } : {}),
       },
     },
   });

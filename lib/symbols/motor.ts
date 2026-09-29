@@ -1,6 +1,7 @@
 import { Geo, identity, mirrorX } from "../geometry.ts";
 import { OBJECT_SCHEMA, type AnimationHint, type Generator, type Port, type Region, type Shape, type VtObject } from "../types.ts";
 import { labelLayout, sanitizeParams } from "./params.ts";
+import { inductionMotor3d } from "./motor3d.ts";
 
 /**
  * Induction motor (TEFC). Side elevation or fan-end view.
@@ -73,6 +74,9 @@ export const inductionMotor: Generator = {
     },
     { key: "label", label: "Tag label", type: "text", maxLength: 12, default: "M-101" },
   ],
+  spatial(raw) {
+    return inductionMotor3d(sanitizeParams(this.params, raw));
+  },
   generate(raw): VtObject {
     const p = sanitizeParams(this.params, raw);
     return p.view === "end" ? endView(this, p) : sideView(this, p);
