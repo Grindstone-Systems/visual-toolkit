@@ -10,7 +10,7 @@ This tracks the internal vision plan against what exists.
 | 3 · Themes | Token editor, JSON/CSS exports | 🟡 Light/Dark tokens + CSS/DTCG exporters. ⏳ editor UI |
 | 4 · Smart objects | Ports, fill regions, animation/state metadata | 🟡 Ports, rotation, turn, flow, live level (`--vt-level`), smart SVG. ⏳ piping/connecting objects |
 | 5 · Spatial | glTF + WebGPU renderer | ✅ All five families in 3D from the same params; validated `.glb` with states, cutaway, levels, effects; WebGPU viewer with environments. ⏳ Dimension Engine loading (docs/SPATIAL.md), skid composer |
-| Sharing | Links, gallery, packs, embeds | ✅ Links, SVG round-trip, gallery. ⏳ packs, `<vt-symbol>` |
+| Sharing | Links, gallery, packs, embeds | ✅ Links, SVG round-trip, gallery, `<vt-symbol>` embed. ⏳ packs, npm publish |
 
 ## Next up
 

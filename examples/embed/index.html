@@ -1,0 +1,122 @@
+<!doctype html>
+<!--
+  <vt-symbol> embed example: one script, then plain HTML tags.
+  From the repo root: `pnpm build:lib && python3 -m http.server 5192`,
+  then open http://127.0.0.1:5192/examples/embed/
+  Published copy: https://grindstone-systems.github.io/visual-toolkit/lib/demo.html
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Visual Toolkit embed</title>
+    <script>
+      // Listen before the element script loads: vt-ready / vt-error bubble (and cross the shadow root).
+      let readyCount = 0;
+      document.addEventListener("vt-ready", () => { const l = document.getElementById("log"); if (l) l.textContent = `vt-ready × ${++readyCount}`; });
+      document.addEventListener("vt-error", (e) => { const l = document.getElementById(`${e.target.id}-log`); if (l) l.textContent = `vt-error: ${e.detail.message}`; });
+    </script>
+    <script type="module" src="../../dist-lib/vt-symbol.js"></script>
+    <style>
+      :root { color-scheme: light; --bg: #f3f1e9; --card: #fbfaf5; --line: #d9d6ca; --fg: #272925; --muted: #6a6c64; }
+      body { margin: 0; padding: 24px 16px 48px; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--fg); }
+      main { max-width: 1040px; margin: 0 auto; }
+      h1 { font-size: 20px; margin: 0 0 4px; }
+      p.lead { margin: 0 0 20px; color: var(--muted); }
+      code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+      .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+      .card h2 { font-size: 14px; margin: 0; }
+      .card .sym { min-height: 120px; display: flex; align-items: center; }
+      /* Cap the height; the SVG keeps its aspect ratio and centres itself (viewBox, meet). */
+      .sym vt-symbol::part(svg) { max-height: 220px; }
+      .states { display: flex; flex-wrap: wrap; gap: 4px; }
+      button { font: inherit; font-size: 12px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--fg); cursor: pointer; }
+      button[aria-pressed="true"] { background: var(--fg); color: var(--card); border-color: var(--fg); }
+      label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+      input[type="range"] { flex: 1; }
+      .log { font: 12px ui-monospace, Menlo, monospace; color: var(--muted); min-height: 1.4em; }
+      .toolbar { display: flex; gap: 16px; margin: 20px 0 0; flex-wrap: wrap; }
+      /* Host-page theming: --vt-* tokens pierce the shadow root because custom properties inherit. */
+      body.dark { color-scheme: dark; --bg: #121518; --card: #1b1f23; --line: #30363c; --fg: #e7e8e3; --muted: #9aa0a6;
+        --vt-surface-canvas: #1b1f23; --vt-text-primary: #e7e8e3; --vt-equipment-body: #3a3f44;
+        --vt-equipment-body-strong: #737a80; --vt-equipment-secondary: #2e3338; --vt-equipment-detail: #8e959b;
+        --vt-equipment-outline: #9aa0a6; --vt-equipment-base: #50565c; }
+      body.dark button:not([aria-pressed="true"]) { background: #262b30; }
+      body.brand { --vt-state-running: #0a7cff; --vt-process-liquid: #2b9d8f; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>&lt;vt-symbol&gt; embed</h1>
+      <p class="lead">One script tag, then plain HTML. <code>state</code> and <code>level</code> update the existing SVG in place, without re-rendering it.</p>
+
+      <div class="grid">
+        <section class="card" data-target="pump">
+          <h2>Pump from a share code</h2>
+          <div class="sym">
+            <vt-symbol id="pump" state="running"
+              recipe="z0.HYwxDsMwCEXvwuxUydpTdK86kBg7SARbBHepeveSLqD3H_wn9HH020bqxmVUFEhz-kDmc9vRKsEdvHVIwCrkQULFA7Pxmyz4aN4sghXPOHYbFJIcWUKejprRcnjBla7oMS3zAt8Uj5lMpyJ49QnX_do2VFkrJB0i__H6AQ"></vt-symbol>
+          </div>
+          <div class="states"></div>
+        </section>
+
+        <section class="card" data-target="tank">
+          <h2>Tank with a live level</h2>
+          <div class="sym">
+            <vt-symbol id="tank" generator="tank.process" params='{"label":"TK-301","agitator":true}' state="running" level="0.64"></vt-symbol>
+          </div>
+          <label>Level <input id="level" type="range" min="0" max="100" value="64" /> <output id="level-out">64%</output></label>
+          <div class="states"></div>
+        </section>
+
+        <section class="card" data-target="conveyor">
+          <h2>Conveyor, outline style</h2>
+          <div class="sym">
+            <vt-symbol id="conveyor" generator="conveyor.belt" params='{"length":6,"load":"boxes","label":"CV-401"}' style="outline" state="running"></vt-symbol>
+          </div>
+          <div class="states"></div>
+        </section>
+
+        <section class="card">
+          <h2>Bad input shows an error</h2>
+          <div class="sym"><vt-symbol id="broken" recipe="z0.not-a-real-code"></vt-symbol></div>
+          <div class="log" id="broken-log"></div>
+        </section>
+      </div>
+
+      <div class="toolbar">
+        <label><input type="checkbox" id="dark" /> Dark host tokens</label>
+        <label><input type="checkbox" id="brand" /> Brand accents (<code>--vt-state-running</code>)</label>
+      </div>
+      <p class="log" id="log"></p>
+    </main>
+
+    <script type="module">
+      const STATES = ["normal", "running", "warning", "fault", "maintenance", "disabled", "comm-loss"];
+      for (const card of document.querySelectorAll(".card[data-target]")) {
+        const sym = document.getElementById(card.dataset.target);
+        const row = card.querySelector(".states");
+        const sync = () => row.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.textContent === sym.getAttribute("state"))));
+        for (const s of STATES) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = s;
+          b.onclick = () => { sym.setAttribute("state", s); sync(); }; // ← the whole integration
+          row.append(b);
+        }
+        sync();
+      }
+
+      const tank = document.getElementById("tank");
+      const level = document.getElementById("level");
+      level.oninput = () => {
+        tank.level = level.value / 100;
+        document.getElementById("level-out").value = `${level.value}%`;
+      };
+
+      document.getElementById("dark").onchange = (e) => document.body.classList.toggle("dark", e.target.checked);
+      document.getElementById("brand").onchange = (e) => document.body.classList.toggle("brand", e.target.checked);
+    </script>
+  </body>
+</html>
