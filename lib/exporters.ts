@@ -13,14 +13,14 @@ export interface ExportFile {
   content: string;
 }
 
-const slug = (s: string) =>
+export const slugify = (s: string): string =>
   s
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "") || "symbol";
 
 export function baseName(vo: VtObject, opts: Pick<RenderOptions, "state" | "style">): string {
-  return slug([vo.label?.text, vo.identity.kind, opts.style, opts.state].filter(Boolean).join("-"));
+  return slugify([vo.label?.text, vo.identity.kind, opts.style, opts.state].filter(Boolean).join("-"));
 }
 
 /** Level A — universal SVG with literal colours for the chosen state. */
@@ -34,7 +34,7 @@ export function exportSvg(vo: VtObject, opts: RenderOptions): ExportFile {
 
 /** Smart SVG — every state embedded, switched with data-vt-state; themable via CSS variables. */
 export function exportSmartSvg(vo: VtObject, opts: RenderOptions): ExportFile {
-  const name = slug([vo.label?.text, vo.identity.kind, opts.style, "smart"].filter(Boolean).join("-"));
+  const name = slugify([vo.label?.text, vo.identity.kind, opts.style, "smart"].filter(Boolean).join("-"));
   return {
     filename: `${name}.svg`,
     mime: "image/svg+xml",
@@ -51,14 +51,14 @@ export function exportStateSet(vo: VtObject, opts: RenderOptions): ExportFile[] 
 export function exportObject(vo: VtObject, opts: RenderOptions): ExportFile {
   const doc = { ...vo, recipe: recipeFor(vo, opts) };
   return {
-    filename: `${slug([vo.label?.text, vo.identity.kind].filter(Boolean).join("-"))}.vt.json`,
+    filename: `${slugify([vo.label?.text, vo.identity.kind].filter(Boolean).join("-"))}.vt.json`,
     mime: "application/json",
     content: JSON.stringify(doc, null, 2) + "\n",
   };
 }
 
 export function exportRecipe(recipe: Recipe, name: string): ExportFile {
-  return { filename: `${slug(name)}.recipe.json`, mime: "application/json", content: JSON.stringify(recipe, null, 2) + "\n" };
+  return { filename: `${slugify(name)}.recipe.json`, mime: "application/json", content: JSON.stringify(recipe, null, 2) + "\n" };
 }
 
 /**
@@ -86,7 +86,7 @@ export function exportIgnitionMetadata(vo: VtObject, opts: RenderOptions): Expor
       "Map your equipment status tag to one of the state values above, then select the matching SVG (image source) or data-vt-state (smart SVG).",
   };
   return {
-    filename: `${slug([vo.label?.text, vo.identity.kind].filter(Boolean).join("-"))}.ignition.json`,
+    filename: `${slugify([vo.label?.text, vo.identity.kind].filter(Boolean).join("-"))}.ignition.json`,
     mime: "application/json",
     content: JSON.stringify(meta, null, 2) + "\n",
   };
@@ -133,7 +133,7 @@ export function exportIgnitionKit(vo: VtObject, opts: RenderOptions): { filename
       "",
     ].join("\n"),
   };
-  const base = slug([vo.label?.text, vo.identity.kind, opts.style].filter(Boolean).join("-"));
+  const base = slugify([vo.label?.text, vo.identity.kind, opts.style].filter(Boolean).join("-"));
   return {
     filename: `${base}-ignition-kit.zip`,
     files: [
