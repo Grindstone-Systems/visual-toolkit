@@ -27,8 +27,21 @@ One repository, one package:
 | `lib/spatial/` | 3D: mesh toolkit, glTF (.glb) writer, state metadata. See docs/SPATIAL.md |
 | `app/` | The builder (React + Vite, fully static) |
 | `gallery/` | Shared designs as small JSON recipes, added by pull request |
+| `lib/element.ts` | The `<vt-symbol>` web component (built to `dist-lib/` by `pnpm build:lib`) |
 | `examples/web/` | A plain HTML page driving a smart SVG |
-| `docs/` | Objects, sharing, hosting, Ignition, roadmap, decisions |
+| `examples/embed/` | `<vt-symbol>` demo page and an iframe-friendly `frame.html` |
+| `docs/` | Objects, sharing, embedding, hosting, Ignition, roadmap, decisions |
+
+## Embed on any web page
+
+One script from GitHub Pages, then plain HTML. No build step, framework or account.
+
+```html
+<script src="https://grindstone-systems.github.io/visual-toolkit/lib/vt-symbol.iife.js"></script>
+<vt-symbol generator="tank.process" params='{"label":"TK-301"}' state="running" level="0.64"></vt-symbol>
+```
+
+`recipe="z0.…"` takes a builder share code. Changing `state` or `level` updates the SVG in place, and host-page `--vt-*` custom properties re-theme it. For attributes, events, theming, CSP and Perspective notes, see [docs/EMBED.md](docs/EMBED.md). There's a live demo at `…/lib/demo.html`.
 
 ## How it works, in one paragraph
 
