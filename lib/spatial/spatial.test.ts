@@ -39,7 +39,7 @@ function outwardFailures(model: SpatialModel): { bad: number; total: number } {
 }
 
 it("covers the families that have 3D models", () => {
-  expect(spatialGenerators.map((g) => g.id)).toEqual(expect.arrayContaining(["pump.centrifugal", "valve.two-way", "motor.induction", "tank.process", "conveyor.belt"]));
+  expect(spatialGenerators.map((g) => g.id)).toEqual(expect.arrayContaining(["pump.centrifugal", "valve.two-way", "motor.induction", "tank.process", "conveyor.belt", "exchanger.shell-tube", "blower.centrifugal", "compressor.air"]));
 });
 
 describe.each(spatialGenerators.map((g) => [g.id, g] as const))("%s 3D (glTF)", (_, gen) => {

@@ -20,6 +20,21 @@ An object says what its parts **are** (`body`, `rotor`, `indicator`…), not wha
 - **Part roles:** `body · body-secondary · nozzle · flange · base · detail · rotor · indicator`
 - **Colour tokens:** `surface.*`, `text.*`, `equipment.*`, `state.*`
 
+## Built-in generators
+
+| Id | Family | Notable params |
+| --- | --- | --- |
+| `pump.centrifugal` | pump | discharge, suction side, driver, baseplate |
+| `valve.two-way` | valve | body, actuator, orientation, flanges |
+| `motor.induction` | motor | view, frame size, mounting, shaft side |
+| `tank.process` | tank | orientation, bottom head, level, agitator |
+| `conveyor.belt` | conveyor | length, direction, drive, product |
+| `exchanger.shell-tube` | exchanger | orientation, front head (bonnet / channel), tube passes (1 / 2 / 4), supports |
+| `blower.centrifugal` | blower | discharge (top / bottom horizontal), rotation, drive (direct / belt / bare shaft) |
+| `compressor.air` | compressor | package (enclosed / skid), cooling (air / water), cooler side |
+
+Every generator also takes a `detail` level and a tag `label`, and builds a matching 3D model (see `SPATIAL.md`).
+
 ## The one rule for generators
 
 The same generator version with the same params must always produce the same object. If you change what a generator draws, **bump its version** and keep the old one registered. Otherwise old share links and gallery entries would silently change.
@@ -41,6 +56,6 @@ There are two modes:
 | --- | --- |
 | `rotate` | impellers, fans, pulleys |
 | `turn` | side-view rotation illusion (agitator blades) |
-| `flow` | seamless slide by one pattern pitch (belt chevrons, product) |
+| `flow` | seamless slide by one pattern pitch (belt chevrons, product, screw-compressor lobes) |
 
 Motion plays only in states whose style allows it, and it respects `prefers-reduced-motion`.

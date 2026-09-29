@@ -1,0 +1,23 @@
+{
+  "title": "Process gas cooler, two-pass",
+  "author": "Grindstone-Systems",
+  "description": "Horizontal shell-and-tube exchanger with bonnet head, two tube passes and saddles.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "exchanger.shell-tube",
+    "version": 0,
+    "params": {
+      "orientation": "horizontal",
+      "head": "bonnet",
+      "passes": "2",
+      "supports": true,
+      "detail": "detailed",
+      "label": "E-501"
+    },
+    "style": "high-performance",
+    "theme": "light",
+    "state": "running"
+  }
+}
