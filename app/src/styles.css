@@ -375,6 +375,8 @@ button.primary:hover { filter: brightness(1.12); }
 .submit { display: grid; gap: 6px; padding: 10px; border-radius: 9px; background: var(--tint); }
 .submit textarea { resize: vertical; }
 .source summary { cursor: pointer; font-size: 12px; font-weight: 600; color: var(--muted); padding: 14px 0 8px; }
+.more-exports { margin-top: 10px; }
+.more-exports summary { cursor: pointer; font-size: 12px; font-weight: 600; color: var(--muted); padding: 6px 0 8px; }
 .source pre {
   margin: 0; max-height: 260px; overflow: auto; padding: 10px; border-radius: 8px; background: var(--tint);
   font: 11px/1.5 var(--mono); white-space: pre-wrap; word-break: break-all; color: var(--muted);

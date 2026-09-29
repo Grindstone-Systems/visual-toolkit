@@ -47,18 +47,25 @@ function unpack(a: unknown): Recipe {
   return r;
 }
 
-export async function encodeShareCode(r: Recipe): Promise<string> {
-  const json = new TextEncoder().encode(JSON.stringify(pack(r)));
+/** Any JSON value → `z0.`/`j0.` code (shared by recipes and scenes). */
+export async function encodeJsonCode(value: unknown): Promise<string> {
+  const json = new TextEncoder().encode(JSON.stringify(value));
   if (typeof CompressionStream !== "undefined") {
     return `z0.${toB64Url(await pipe(json, new CompressionStream("deflate-raw")))}`;
   }
   return `j0.${toB64Url(json)}`;
 }
 
-export async function decodeShareCode(code: string): Promise<Recipe> {
+export async function decodeJsonCode(code: string): Promise<unknown> {
   const [kind, body] = [code.slice(0, 3), code.slice(3)];
   let bytes = fromB64Url(body);
   if (kind === "z0.") bytes = await pipe(bytes, new DecompressionStream("deflate-raw"));
   else if (kind !== "j0.") throw new Error("Unsupported share code version");
-  return unpack(JSON.parse(new TextDecoder().decode(bytes)));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+export const encodeShareCode = (r: Recipe): Promise<string> => encodeJsonCode(pack(r));
+
+export async function decodeShareCode(code: string): Promise<Recipe> {
+  return unpack(await decodeJsonCode(code));
 }

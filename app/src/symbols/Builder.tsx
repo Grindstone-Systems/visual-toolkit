@@ -1,6 +1,12 @@
 import {
+  exportIconRepositoryKit,
   exportIgnitionKit,
   exportObject,
+  exportOptixKit,
+  exportPerspectiveDrawingSvg,
+  exportPerspectiveThemeCss,
+  exportWinccUnifiedKit,
+  iconItemsForStates,
   exportSmartSvg,
   exportSvg,
   generate,
@@ -19,6 +25,7 @@ import {
   type StateName,
   type StyleId,
   type VtObject,
+  type ExportKit,
 } from "../../../lib/index.ts";
 import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Describe } from "../ai/Describe.tsx";
@@ -321,6 +328,35 @@ export function Builder({
               </button>
             )}
           </div>
+          <details className="more-exports">
+            <summary>More platforms</summary>
+            <div className="grid2">
+              <button
+                onClick={() => downloadKit(exportIconRepositoryKit(iconItemsForStates(vo), { library: "vt", style: design.style, theme: design.theme, tokens: design.tokens }))}
+                title="Perspective icon repository with every state (colour and mono). Verified on Ignition 8.3.9"
+              >
+                Icon repository
+              </button>
+              <button onClick={() => downloadFile(exportPerspectiveDrawingSvg(vo, opts))} title="Flat SVG for the Perspective Drawing component; element ids equal region ids">
+                Drawing SVG
+              </button>
+              <button
+                onClick={() => downloadFile(exportPerspectiveThemeCss(design.theme, { tokens: design.tokens }))}
+                title="--vt-* tokens for a Perspective Advanced Stylesheet (unverified)"
+              >
+                Perspective CSS
+              </button>
+              <button onClick={() => downloadKit(exportWinccUnifiedKit(vo, opts))} title="Siemens WinCC Unified SVG + state map (unverified)">
+                WinCC Unified
+              </button>
+              <button className="span2" onClick={() => downloadKit(exportOptixKit(vo, opts))} title="Rockwell FactoryTalk Optix SVG + state map (unverified)">
+                FactoryTalk Optix
+              </button>
+            </div>
+            <p className="hint">
+              Ignition icon repository, images and Drawing were tested on 8.3.9. The WinCC, Optix and stylesheet paths are unverified. See the docs.
+            </p>
+          </details>
         </Section>
 
         <SharePanel design={design} notify={notify} onOpenFile={openFile} />
@@ -335,6 +371,10 @@ export function Builder({
 }
 
 /* ------------------------------------------------------------------ */
+
+function downloadKit(kit: ExportKit) {
+  downloadBlob(new Blob([zip(kit.files.map((f) => ({ path: f.filename, content: f.content }))) as BlobPart], { type: "application/zip" }), kit.filename);
+}
 
 function SharePanel({ design, notify, onOpenFile }: { design: Design; notify: (m: string) => void; onOpenFile: (f: File) => void }) {
   const [submitting, setSubmitting] = useState(false);

@@ -15,3 +15,4 @@ export * from "./spatial/mesh.ts";
 export * from "./spatial/gltf.ts";
 export * from "./spatial/export.ts";
 export * from "./platforms.ts";
+export * from "./composer/scene.ts";
