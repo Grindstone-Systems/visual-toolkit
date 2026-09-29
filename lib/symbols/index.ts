@@ -7,10 +7,14 @@ import { beltConveyor } from "./conveyor.ts";
 import { shellTubeExchanger } from "./exchanger.ts";
 import { centrifugalBlower } from "./blower.ts";
 import { airCompressor } from "./compressor.ts";
+import { staticMixer } from "./mixer.ts";
+import { isaTransmitter } from "./instrument.ts";
+import { pipeFitting } from "./fitting.ts";
 
 export { defaultParams, sanitizeParams } from "./params.ts";
 export { centrifugalPump, processValve, inductionMotor, processTank, beltConveyor };
 export { shellTubeExchanger, centrifugalBlower, airCompressor };
+export { staticMixer, isaTransmitter, pipeFitting };
 
 /** Every generator version ever published stays registered (share links depend on it). */
 export const GENERATORS: Generator[] = [
@@ -22,6 +26,9 @@ export const GENERATORS: Generator[] = [
   shellTubeExchanger,
   centrifugalBlower,
   airCompressor,
+  staticMixer,
+  isaTransmitter,
+  pipeFitting,
 ];
 
 /** Families shown in the builder, including ones on the roadmap. */
@@ -34,6 +41,9 @@ export const FAMILIES: { family: string; name: string; generator?: string }[] = 
   { family: "exchanger", name: "Heat exchanger", generator: "exchanger.shell-tube" },
   { family: "blower", name: "Blower", generator: "blower.centrifugal" },
   { family: "compressor", name: "Compressor", generator: "compressor.air" },
+  { family: "mixer", name: "Static mixer", generator: "mixer.static" },
+  { family: "instrument", name: "Instrument", generator: "instrument.transmitter" },
+  { family: "pipe", name: "Pipe fitting", generator: "pipe.fitting" },
 ];
 
 export function getGenerator(id: string, version?: number): Generator | undefined {

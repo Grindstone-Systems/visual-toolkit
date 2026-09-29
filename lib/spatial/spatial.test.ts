@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 // @ts-expect-error — the validator ships without types
 import validator from "gltf-validator";
-import { GENERATORS, centrifugalPump, defaultParams, readGlbJson, spatialGlb } from "../index.ts";
+import { GENERATORS, bounds, centrifugalPump, defaultParams, pipeFitting, readGlbJson, spatialGlb } from "../index.ts";
+import { PIPE, REDUCED } from "../symbols/pipe.ts";
 import type { Generator, ParamValues, SpatialModel } from "../types.ts";
 
 const opts = { style: "modern-flat", theme: "light", state: "running" } as const;
@@ -39,7 +40,21 @@ function outwardFailures(model: SpatialModel): { bad: number; total: number } {
 }
 
 it("covers the families that have 3D models", () => {
-  expect(spatialGenerators.map((g) => g.id)).toEqual(expect.arrayContaining(["pump.centrifugal", "valve.two-way", "motor.induction", "tank.process", "conveyor.belt", "exchanger.shell-tube", "blower.centrifugal", "compressor.air"]));
+  expect(spatialGenerators.map((g) => g.id)).toEqual(
+    expect.arrayContaining([
+      "pump.centrifugal",
+      "valve.two-way",
+      "motor.induction",
+      "tank.process",
+      "conveyor.belt",
+      "exchanger.shell-tube",
+      "blower.centrifugal",
+      "compressor.air",
+      "mixer.static",
+      "instrument.transmitter",
+      "pipe.fitting",
+    ]),
+  );
 });
 
 describe.each(spatialGenerators.map((g) => [g.id, g] as const))("%s 3D (glTF)", (_, gen) => {
@@ -93,5 +108,49 @@ describe("pump 3D specifics", () => {
     expect(json.nodes.find((n) => n.name === "casing")!.extras!.vt!.section).toBe(true);
     expect(json.extras.vt.sectionPlane).toBeTruthy();
     expect(json.extras.vt.states.fault!.badge).toBe("fault");
+  });
+});
+
+describe("pipe fitting 3D ports", () => {
+  const faces = (m: SpatialModel, id: string) => m.nodes.filter((n) => n.id === id).flatMap((n) => {
+    const out: [number, number, number][] = [];
+    for (let i = 0; i < n.mesh.positions.length; i += 3) out.push([n.mesh.positions[i]! + n.translation[0], n.mesh.positions[i + 1]! + n.translation[1], n.mesh.positions[i + 2]! + n.translation[2]]);
+    return out;
+  });
+
+  it("puts every port on a pipe end, facing out, with the line size", () => {
+    for (const p of combos(pipeFitting)) {
+      const m = pipeFitting.spatial!(p);
+      const flanged = p.ends === "flanged";
+      const pts = faces(m, flanged ? "flanges" : "welds");
+      const all = bounds(m.nodes);
+      expect(all.min[1]).toBeCloseTo(0, 4);
+      expect(m.ports.length).toBe(p.fitting === "tee" ? 3 : 2);
+      for (const port of m.ports) {
+        const d = port.direction;
+        expect(Math.hypot(...d)).toBeCloseTo(1, 6);
+        const size = p.fitting === "reducer" && port.id === "b" ? PIPE[REDUCED[String(p.size)]!]! : PIPE[String(p.size)]!;
+        expect(port.size).toBeCloseTo(size.od, 6);
+        // The end face lies in the plane through the port, and nothing reaches beyond it.
+        const along = pts.map((q) => (q[0] - port.position[0]) * d[0] + (q[1] - port.position[1]) * d[1] + (q[2] - port.position[2]) * d[2]);
+        expect(Math.max(...along)).toBeCloseTo(0, 3);
+        // The face is centred on the port: points in that plane span the bore radius around it.
+        const onFace = pts.filter((_, i) => Math.abs(along[i]!) < 1e-3);
+        const radial = onFace.map((q) => Math.hypot(q[0] - port.position[0], q[1] - port.position[1], q[2] - port.position[2]));
+        expect(Math.min(...radial)).toBeCloseTo(size.od / 2 - size.wall, 3);
+        // Outward: the fitting body lies behind the face.
+        const body = faces(m, "body").map((q) => (q[0] - port.position[0]) * d[0] + (q[1] - port.position[1]) * d[1] + (q[2] - port.position[2]) * d[2]);
+        expect(Math.max(...body)).toBeLessThan(1e-4);
+      }
+    }
+  });
+
+  it("makes flanged ports sit one flange height beyond the butt-weld ends", () => {
+    const w = pipeFitting.spatial!({ ...defaultParams(pipeFitting.params), fitting: "elbow-90", ends: "welded" });
+    const f = pipeFitting.spatial!({ ...defaultParams(pipeFitting.params), fitting: "elbow-90", ends: "flanged" });
+    const s = PIPE["80"]!;
+    const span = (m: SpatialModel) => Math.hypot(...[0, 1, 2].map((k) => m.ports[0]!.position[k]! - m.ports[1]!.position[k]!));
+    expect(span(w)).toBeCloseTo(s.elbow90 * Math.SQRT2, 3);
+    expect(span(f)).toBeCloseTo((s.elbow90 + s.flange.h) * Math.SQRT2, 3);
   });
 });

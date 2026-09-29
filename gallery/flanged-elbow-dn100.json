@@ -1,0 +1,23 @@
+{
+  "title": "Flanged 90° elbow DN 100",
+  "author": "Grindstone-Systems",
+  "description": "Long-radius 90° elbow with weld-neck flanges, outline style.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "pipe.fitting",
+    "version": 0,
+    "params": {
+      "fitting": "elbow-90",
+      "size": "100",
+      "ends": "flanged",
+      "rotation": "0",
+      "length": 500,
+      "label": ""
+    },
+    "style": "outline",
+    "theme": "light",
+    "state": "normal"
+  }
+}

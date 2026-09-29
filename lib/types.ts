@@ -215,7 +215,10 @@ export interface SpatialPort {
   id: string;
   kind: PortKind;
   position: Vec3;
+  /** Unit outward direction. */
   direction: Vec3;
+  /** Pipe outside diameter at the connection, in metres (piping ports). */
+  size?: number;
 }
 
 export type SpatialAnimation =
