@@ -2,6 +2,8 @@ import { decodeShareCode, encodeShareCode, extractRecipe } from "../../lib/index
 import {
   RECIPE_SCHEMA,
   STATES,
+  PAINTS,
+  type PaintId,
   type ParamValues,
   type Recipe,
   type StateName,
@@ -17,6 +19,8 @@ export interface Design {
   style: StyleId;
   theme: ThemeId;
   state: StateName;
+  /** 3D paint. */
+  paint: PaintId;
 }
 
 const STYLES: StyleId[] = ["high-performance", "modern-flat", "outline"];
@@ -28,6 +32,7 @@ export const initialDesign = (): Design => ({
   style: "modern-flat",
   theme: "light",
   state: "running",
+  paint: "slate",
 });
 
 export function toRecipe(d: Design): Recipe {
@@ -40,6 +45,7 @@ export function toRecipe(d: Design): Recipe {
     style: d.style,
     theme: d.theme,
     state: d.state,
+    ...(d.paint !== "slate" ? { paint: d.paint } : {}),
   };
 }
 
@@ -53,19 +59,11 @@ export function applyRecipe(d: Design, r: Recipe): Design {
     style: STYLES.includes(r.style) ? r.style : d.style,
     theme: THEMES.includes(r.theme) ? r.theme : d.theme,
     state: STATES.includes(r.state) ? r.state : d.state,
+    paint: r.paint && PAINTS.includes(r.paint) ? r.paint : "slate",
   };
 }
 
-/* ------------------------------ URL hash ------------------------------ */
-
-export type Route = { view: "builder"; code?: string } | { view: "gallery" };
-
-export function parseHash(hash = location.hash): Route {
-  const h = hash.replace(/^#\/?/, "");
-  if (h === "gallery") return { view: "gallery" };
-  const m = h.match(/^d\/([A-Za-z0-9._-]+)$/);
-  return m ? { view: "builder", code: m[1] } : { view: "builder" };
-}
+/* ------------------------------ share links ------------------------------ */
 
 export async function designLink(d: Design): Promise<string> {
   const code = await encodeShareCode(toRecipe(d));
