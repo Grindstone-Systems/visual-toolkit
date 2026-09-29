@@ -1,0 +1,23 @@
+{
+  "title": "Booster pump \u2014 fault",
+  "author": "Grindstone-Systems",
+  "description": "High-performance style: colour appears only because something is wrong.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "pump.centrifugal",
+    "version": 0,
+    "params": {
+      "discharge": "side",
+      "inlet": "right",
+      "driver": "motor",
+      "base": true,
+      "detail": "detailed",
+      "label": "P-204B"
+    },
+    "style": "high-performance",
+    "theme": "dark",
+    "state": "fault"
+  }
+}

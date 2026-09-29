@@ -1,0 +1,41 @@
+<!doctype html>
+<!--
+  Plain-web example: one smart SVG with every state embedded.
+  No framework or runtime is needed. The host page sets data-vt-state, and it
+  can override theme tokens with CSS custom properties.
+  Serve this folder (for example `python3 -m http.server`) and open it.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Visual Toolkit — plain web example</title>
+    <style>
+      body { font: 14px system-ui, sans-serif; margin: 32px; background: #f3f1e9; color: #272925; }
+      #pump { width: 420px; max-width: 100%; }
+      .dark { background: #121518; color: #e7e8e3;
+        /* Re-theme without regenerating: override the tokens. */
+        --vt-surface-canvas: #121518; --vt-text-primary: #e7e8e3; --vt-equipment-body: #3a3f44;
+        --vt-equipment-body-strong: #737a80; --vt-equipment-secondary: #2e3338; --vt-equipment-detail: #8e959b; }
+      button { margin: 2px; }
+    </style>
+  </head>
+  <body>
+    <h1>Smart SVG, driven by a plain web page</h1>
+    <div id="pump"></div>
+    <p id="buttons"></p>
+    <label><input type="checkbox" id="dark" /> Dark tokens</label>
+    <script type="module">
+      const host = document.getElementById("pump");
+      host.innerHTML = await (await fetch("pump-smart.svg")).text();
+      const svg = host.querySelector("svg");
+      for (const s of ["normal", "running", "warning", "fault", "maintenance", "disabled", "comm-loss"]) {
+        const b = document.createElement("button");
+        b.textContent = s;
+        b.onclick = () => (svg.dataset.vtState = s); // ← the whole integration
+        document.getElementById("buttons").append(b);
+      }
+      document.getElementById("dark").onchange = (e) => document.body.classList.toggle("dark", e.target.checked);
+    </script>
+  </body>
+</html>

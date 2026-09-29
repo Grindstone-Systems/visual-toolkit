@@ -1,0 +1,22 @@
+{
+  "title": "Pneumatic isolation valve",
+  "author": "Grindstone-Systems",
+  "description": "Air-actuated gate valve for dark control-room displays.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "valve.two-way",
+    "version": 0,
+    "params": {
+      "body": "gate",
+      "actuator": "pneumatic",
+      "orientation": "horizontal",
+      "flanges": true,
+      "label": "XV-201"
+    },
+    "style": "modern-flat",
+    "theme": "dark",
+    "state": "normal"
+  }
+}

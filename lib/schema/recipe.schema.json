@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Visual Toolkit recipe v0 (draft)",
+  "description": "Everything needed to deterministically reproduce a visual: generator + version + params + style + theme + state.",
+  "type": "object",
+  "required": [
+    "schema",
+    "generator",
+    "version",
+    "params",
+    "style",
+    "theme",
+    "state"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "vt.recipe/v0"
+    },
+    "generator": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean"
+        ]
+      }
+    },
+    "style": {
+      "enum": [
+        "high-performance",
+        "modern-flat",
+        "outline"
+      ]
+    },
+    "theme": {
+      "enum": [
+        "light",
+        "dark"
+      ]
+    },
+    "state": {
+      "enum": [
+        "normal",
+        "running",
+        "warning",
+        "fault",
+        "maintenance",
+        "disabled",
+        "comm-loss"
+      ]
+    },
+    "tokens": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-z]+\\.[a-z-]+$": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        }
+      }
+    }
+  }
+}

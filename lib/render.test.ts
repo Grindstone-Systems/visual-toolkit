@@ -1,0 +1,83 @@
+import { describe, expect, it } from "vitest";
+import { decodeShareCode, encodeShareCode, extractRecipe, recipeFor, renderSvg } from "./index.ts";
+import { STATES, type Recipe } from "./index.ts";
+import { generate, generateFromRecipe } from "./index.ts";
+import { lightTheme } from "./index.ts";
+
+const pump = generate("pump.centrifugal", {});
+const base = { style: "high-performance", theme: "light", state: "normal" } as const;
+
+describe("renderSvg (resolved)", () => {
+  it("emits semantic, well-formed SVG with literal colours", () => {
+    const svg = renderSvg(pump, base);
+    expect(svg).toMatch(/^<svg xmlns="http:\/\/www.w3.org\/2000\/svg"/);
+    expect(svg).toContain('data-region="casing"');
+    expect(svg).toContain("vt-role--body");
+    expect(svg).toContain(`fill="${lightTheme.tokens["equipment.body"]}"`);
+    expect(svg).not.toContain("var(--");
+  });
+
+  it("gives every abnormal state a shape-coded badge (not colour alone)", () => {
+    for (const state of ["warning", "fault", "maintenance", "disabled", "comm-loss"] as const) {
+      expect(renderSvg(pump, { ...base, state })).toContain(`vt-badge--${state}`);
+    }
+    expect(renderSvg(pump, base)).not.toContain("vt-badge");
+  });
+
+  it("animates the impeller only while running", () => {
+    expect(renderSvg(pump, { ...base, state: "running" })).toContain("@keyframes");
+    expect(renderSvg(pump, base)).not.toContain("@keyframes");
+    expect(renderSvg(pump, { ...base, state: "running", animate: false })).not.toContain("@keyframes");
+  });
+
+  it("escapes label text", () => {
+    const vo = { ...pump, label: { text: "A&B<" } };
+    expect(renderSvg(vo, base)).toContain("A&amp;B&lt;");
+  });
+
+  it("honours token overrides", () => {
+    const svg = renderSvg(pump, { ...base, tokens: { "equipment.body": "#123456" } });
+    expect(svg).toContain('fill="#123456"');
+  });
+});
+
+describe("renderSvg (themable)", () => {
+  it("embeds every state, switched by data-vt-state, with CSS variable fallbacks", () => {
+    const svg = renderSvg(pump, { ...base, mode: "themable" });
+    for (const s of STATES) expect(svg).toContain(`[data-vt-state="${s}"]`);
+    expect(svg).toContain(`var(--vt-equipment-body,${lightTheme.tokens["equipment.body"]})`);
+    expect(svg).toContain("vt-badge--fault");
+  });
+});
+
+describe("recipes", () => {
+  const recipe: Recipe = recipeFor(generate("valve.two-way", { body: "ball", label: "XV-9" }), {
+    ...base,
+    state: "fault",
+    tokens: { "state.fault": "#ff0000" },
+  });
+
+  it("round-trip through share codes", async () => {
+    const code = await encodeShareCode(recipe);
+    expect(code).toMatch(/^z0\.[A-Za-z0-9_-]+$/);
+    expect(code.length).toBeLessThan(200);
+    expect(await decodeShareCode(code)).toEqual(recipe);
+  });
+
+  it("round-trip through exported SVG metadata", () => {
+    const vo = generateFromRecipe(recipe);
+    const svg = renderSvg(vo, recipe);
+    expect(extractRecipe(svg)).toEqual(recipe);
+  });
+
+  it("regenerate identical SVG from a recipe", () => {
+    const a = renderSvg(generateFromRecipe(recipe), recipe);
+    const b = renderSvg(generateFromRecipe(structuredClone(recipe)), recipe);
+    expect(a).toBe(b);
+  });
+
+  it("rejects garbage share codes", async () => {
+    await expect(decodeShareCode("zz.nope")).rejects.toThrow();
+    await expect(decodeShareCode("j0." + btoa("[1,2]"))).rejects.toThrow();
+  });
+});
