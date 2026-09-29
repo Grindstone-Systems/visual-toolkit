@@ -101,7 +101,7 @@ Importing the module always defines `vt-symbol`. `defineVtSymbol()` is idempoten
 
 ## Ignition Perspective (unverified)
 
-> These notes have **not been tested** against a Perspective session yet. Treat them as starting points.
+> The `<vt-symbol>` and `frame.html` paths have **not been tested** in a Perspective session. Treat them as starting points. The 8.3.9 gateway test (docs/IGNITION.md) found that Markdown strips `<style>`, and that an Inline Frame can't switch a *smart SVG's* state. Driving `frame.html` through its `#hash` is a different path and is still untested.
 
 - **Markdown component:** it renders sanitised HTML, and `<script>` doesn't run by default, so it can't load the element script. Turning off `escapeHtml` might keep a `<vt-symbol>` tag, but something still has to define the element. Don't rely on this path.
 - **Inline Frame component (recommended to try first):** point its `src` at `frame.html` and configure the symbol with URL parameters:

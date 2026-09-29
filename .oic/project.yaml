@@ -156,8 +156,10 @@ faq:
       and open in three.js, Babylon, PlayCanvas and Blender. Visual Toolkit
       metadata for states, levels and cutaways travels in the file's extras.
   - question: Has the Ignition workflow been tested?
-    answer: Not yet on a real gateway. The kit, metadata and guide are ready, but
-      they are marked unverified until someone validates them on Ignition 8.3.
+    answer: Partly. On a fresh Ignition 8.3.9 gateway, SVG images, state sets
+      swapped by a tag expression, the icon repository and a Drawing with a
+      tag-bound fill all worked. The guide lists what failed and what is still
+      untested, including 8.1 and the Designer's drag-and-drop import.
 lifecycle:
   stage: preview
   maintenance: active

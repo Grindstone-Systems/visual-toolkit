@@ -19,7 +19,7 @@ pnpm oic:media hero      # or only shots whose name matches
 
 Edit `.oic/project.yaml` and `.oic/overview.md` as needed. Keep claims accurate:
 - Label composed scenes as composed.
-- Keep Ignition workflows marked unverified until someone tests them on a gateway.
+- Only claim the Ignition workflows that docs/IGNITION.md marks as verified (8.3.9). Keep the rest marked unverified.
 - State any account or paid requirements.
 
 Commit and push to `main`.

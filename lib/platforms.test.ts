@@ -161,7 +161,7 @@ describe("Perspective icon repository", () => {
     expect(f.content).toContain(darkTheme.tokens["state.fault"]);
   });
 
-  it("kit zips colour + mono repositories, 8.3 resource files and an unverified README", () => {
+  it("kit zips colour + mono repositories, 8.3 resource files and an install README", () => {
     const kit = exportIconRepositoryKit(items, { library: "vt", ...opts });
     const names = kit.files.map((f) => f.filename);
     expect(names).toEqual(
@@ -181,7 +181,7 @@ describe("Perspective icon repository", () => {
     });
     const res = JSON.parse(kit.files.find((f) => f.filename === "ignition-8.3/vt/resource.json")!.content);
     expect(res.files).toEqual(["config.json", "vt.svg"]);
-    expect(kit.files.find((f) => f.filename === "README.txt")!.content).toMatch(/UNVERIFIED ON A GATEWAY/);
+    expect(kit.files.find((f) => f.filename === "README.txt")!.content).toMatch(/VERIFIED on a fresh Ignition 8\.3\.9/);
     expect(JSON.parse(kit.files.find((f) => f.filename === "icons.json")!.content).icons).toHaveLength(items.length);
     checkZip(kit);
   });
