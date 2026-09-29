@@ -162,3 +162,22 @@ lifecycle:
   stage: preview
   maintenance: active
 visibility: listed
+discovery:
+  primary: visualization
+  capabilities: [Symbol generation, SVG export, 3D asset generation, HMI design]
+  product_type: application
+  works_with:
+    - name: Ignition Perspective
+      relationship: exports
+      evidence_url: https://github.com/Grindstone-Systems/visual-toolkit#readme
+  options:
+    - delivery: web
+      environments: [Browser]
+      deployment: [hosted]
+    - resource_id: source
+      delivery: source
+      environments: [Browser]
+      deployment: [local, server, cloud]
+  offline: unknown
+  air_gap: unknown
+  commercial_use: yes
