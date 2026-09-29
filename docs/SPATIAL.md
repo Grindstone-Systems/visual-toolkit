@@ -2,7 +2,7 @@
 
 A generator can also build a **stylised 3D model** from the same parameters as its 2D symbol. It exports as standard **glTF 2.0 binary (`.glb`)**, which three.js, Babylon, PlayCanvas, Blender and most other 3D tools open. Visual Toolkit metadata rides inside the file, in `extras`, so a renderer can switch operating state at runtime.
 
-Status: **all five families** (pump, valve, motor, tank, conveyor). Every configuration of every family passes the Khronos glTF validator with zero errors, faces outward and is byte-for-byte deterministic (`lib/spatial/spatial.test.ts`).
+Status: **all eight families** (pump, valve, motor, tank, conveyor, heat exchanger, blower, compressor). Every configuration of every family passes the Khronos glTF validator with zero errors, faces outward and is byte-for-byte deterministic (`lib/spatial/spatial.test.ts`).
 
 | Family | 3D highlights |
 | --- | --- |
@@ -11,6 +11,9 @@ Status: **all five families** (pump, valve, motor, tank, conveyor). Every config
 | Induction motor | Foot or flange mount, three frame sizes. Cutaway shows the rotor and winding end-turns |
 | Process tank | Ellipsoidal or cone bottom, sight glass that follows the level, manway, agitator. Cutaway shows the liquid and the impeller |
 | Belt conveyor | Procedural length, idlers, gearmotor, cleats and cartons or bulk material sliding along the belt |
+| Shell-and-tube exchanger | Bolted girth flanges, bonnet or channel-and-cover head, flanged nozzles, saddles or lugs and legs. Cutaway shows the tube bundle, segmental baffles and pass partitions |
+| Centrifugal blower | Filleted scroll housing (the 2D outline extruded), inlet bell with guard, direct, belt or bare-shaft drive. Cutaway shows the backward-curved wheel spinning |
+| Air compressor | Enclosed package (panel, louvres, cooler fan, roof exhaust) or open skid (separator, twin-screw airend, motor, air or water cooler). Cutaway shows the screw rotors turning |
 
 ## What is shared with the 2D symbol
 
