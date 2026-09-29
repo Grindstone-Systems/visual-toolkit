@@ -1,0 +1,164 @@
+schema: oic/project/v2
+id: visual-toolkit
+name: Visual Toolkit
+summary: Generate state-aware industrial symbols and stylised 3D equipment from parameters, then export SVG, smart SVG or glTF.
+category: Visualization
+tags:
+  - Symbols
+  - SVG
+  - 3D
+  - glTF
+  - WebGPU
+  - HMI design
+  - Ignition
+  - Open source
+platforms:
+  - Web browser
+publisher:
+  name: Grindstone Systems
+  url: https://github.com/Grindstone-Systems
+description:
+  file: ./overview.md
+branding:
+  logo:
+    on_light: ./media/logo.png
+    on_dark: ./media/logo.png
+    alt: Visual Toolkit mark, a white pump outline with a green status dot on a charcoal tile
+media:
+  - id: plant-floor
+    type: image
+    src: ./media/plant-floor.jpg
+    title: Five generated families in 3D
+    alt: A tiled plant floor with a stainless process tank, a blue end-suction pump on a baseplate, a red pneumatic control valve, a green motor and a yellow-framed belt conveyor carrying cartons.
+    caption: Each model was generated from builder parameters and exported as glTF, then the five were arranged in one scene for this image. The builder itself shows one model at a time.
+    credit: Grindstone Systems
+    rights: Provided for display, resizing and caching in the OIC project listing.
+  - id: builder-3d
+    type: image
+    src: ./media/builder-3d.jpg
+    title: Builder with a 3D cutaway
+    alt: The Visual Toolkit builder with pump parameters on the left, export and share panels on the right, and a 3D pump sectioned to show its impeller and shaft.
+    caption: Hosted builder · WebGPU 3D view with Cutaway and environment presets
+    credit: Grindstone Systems
+    rights: Provided for display, resizing and caching in the OIC project listing.
+  - id: night-states
+    type: image
+    src: ./media/night-states.jpg
+    title: Operating states in 3D
+    alt: The same equipment in slate paint in a dark scene with a cyan grid; the pump beacon glows red for a fault and the valve beacon amber for a warning.
+    caption: Night environment · States drive beacon colour, badge, motion and vibration. Composed scene of individually generated models.
+    credit: Grindstone Systems
+    rights: Provided for display, resizing and caching in the OIC project listing.
+  - id: tank-cutaway
+    type: image
+    src: ./media/tank-cutaway.jpg
+    title: Tank cutaway with live level
+    alt: A vertical process tank sectioned to reveal translucent blue contents, a pitched-blade agitator, a sight glass and an orange cut edge, on a tiled floor.
+    caption: 3D view · The level slider drives the contents and the sight glass
+    credit: Grindstone Systems
+    rights: Provided for display, resizing and caching in the OIC project listing.
+  - id: all-states
+    type: image
+    src: ./media/all-states.jpg
+    title: 21 variants from one definition
+    alt: The builder in dark mode showing a grid of a centrifugal pump in three styles and seven operating states, each abnormal state marked by a distinct badge shape.
+    caption: All states view · Three styles by seven states, all generated from one configuration
+    credit: Grindstone Systems
+    rights: Provided for display, resizing and caching in the OIC project listing.
+  - id: live-smart-svg
+    type: image
+    src: ./media/live-smart-svg.jpg
+    title: A smart SVG driven like an HMI
+    alt: The builder's Live view showing a tank symbol in a warning state with a code panel reading svg.dataset.vtState equals warning and a level custom property.
+    caption: Live view · One SVG file; a host sets one attribute and one CSS variable
+    credit: Grindstone Systems
+    rights: Provided for display, resizing and caching in the OIC project listing.
+source:
+  availability: open-source
+  repository: https://github.com/Grindstone-Systems/visual-toolkit
+license:
+  name: Apache License 2.0
+  url: https://github.com/Grindstone-Systems/visual-toolkit/blob/main/LICENSE
+  spdx_expression: Apache-2.0
+access:
+  edition: Hosted web builder
+  cost: free
+  notes: The builder is a static site that runs entirely in your browser, with no
+    account, server or time limit. Exported SVG, PNG, glTF and JSON files are
+    yours to use. The source is Apache-2.0 and can be self-hosted. Gallery
+    entries are CC0-1.0.
+  account_required: false
+requirements:
+  - name: Modern web browser
+    kind: software
+    cost: free
+    notes: The 2D builder and exports work in current Chrome, Edge, Firefox and
+      Safari. The 3D view uses WebGPU where available and falls back to WebGL 2.
+  - name: GitHub account
+    kind: service
+    cost: free
+    notes: Only needed to submit a design to the community gallery by pull
+      request. Building, exporting and share links need no account.
+    applies_to:
+      - gallery
+  - name: Ignition Perspective
+    kind: software
+    cost: optional-paid
+    notes: Optional destination for exported assets. The Ignition kit and guide are
+      provided, but import workflows have not yet been validated on an Ignition
+      gateway.
+actions:
+  - id: builder
+    type: demo
+    url: https://grindstone-systems.github.io/visual-toolkit/
+    primary: true
+    label: Open the builder
+    description: Configure equipment, preview states, switch to 3D and export.
+      Runs in your browser with no account.
+  - id: gallery
+    type: demo
+    url: https://grindstone-systems.github.io/visual-toolkit/#/gallery
+    primary: false
+    label: Browse the gallery
+  - id: docs
+    type: docs
+    url: https://github.com/Grindstone-Systems/visual-toolkit#readme
+    primary: false
+    label: Read the docs
+resources:
+  - id: source
+    kind: source
+    title: Source code
+    url: https://github.com/Grindstone-Systems/visual-toolkit
+    access: public
+    description: Apache-2.0 TypeScript engine, generators, exporters and the React builder.
+  - id: spatial-spec
+    kind: document
+    title: 3D file contract (glTF extras)
+    url: https://github.com/Grindstone-Systems/visual-toolkit/blob/main/docs/SPATIAL.md
+    access: public
+    description: How renderers switch state, levels, cutaway and effects from the exported .glb.
+links:
+  homepage: https://grindstone-systems.github.io/visual-toolkit/
+  docs: https://github.com/Grindstone-Systems/visual-toolkit#readme
+  issues: https://github.com/Grindstone-Systems/visual-toolkit/issues
+  changelog: https://github.com/Grindstone-Systems/visual-toolkit/commits/main
+faq:
+  - question: Is this a replacement for Symbol Factory or Perspective Symbols?
+    answer: No. Visual Toolkit generates assets. Ignition keeps tags, bindings,
+      alarming and its native components. Use Perspective Symbols where they fit,
+      and Visual Toolkit for equipment and looks they don't cover.
+  - question: Do I need an account or a server?
+    answer: No. Everything runs in your browser. Share links carry the whole design
+      in the URL fragment, which is never sent to the web server.
+  - question: Can I use the 3D models elsewhere?
+    answer: Yes. They are standard glTF 2.0 files that pass the Khronos validator
+      and open in three.js, Babylon, PlayCanvas and Blender. Visual Toolkit
+      metadata for states, levels and cutaways travels in the file's extras.
+  - question: Has the Ignition workflow been tested?
+    answer: Not yet on a real gateway. The kit, metadata and guide are ready, but
+      they are marked unverified until someone validates them on Ignition 8.3.
+lifecycle:
+  stage: preview
+  maintenance: active
+visibility: listed
