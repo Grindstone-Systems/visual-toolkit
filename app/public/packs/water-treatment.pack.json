@@ -1,0 +1,130 @@
+{
+  "schema": "vt.pack/v0",
+  "name": "Water treatment starter",
+  "author": "Grindstone Systems",
+  "description": "Example team pack: common water-treatment equipment on a steel-blue theme.",
+  "theme": {
+    "base": "light",
+    "tokens": {
+      "surface.canvas": "#eef2f4",
+      "surface.panel": "#f8fafb",
+      "equipment.body": "#d7e0e6",
+      "equipment.body-strong": "#7f95a3",
+      "equipment.secondary": "#c2ced6",
+      "equipment.outline": "#2d3a42",
+      "equipment.detail": "#5f7280",
+      "equipment.base": "#aab7bf"
+    }
+  },
+  "entries": [
+    {
+      "title": "Raw water pump P-101",
+      "recipe": {
+        "schema": "vt.recipe/v0",
+        "generator": "pump.centrifugal",
+        "version": 0,
+        "params": {
+          "label": "P-101",
+          "detail": "detailed"
+        },
+        "style": "modern-flat",
+        "theme": "light",
+        "state": "running"
+      }
+    },
+    {
+      "title": "Dosing pump P-205 (bare shaft)",
+      "recipe": {
+        "schema": "vt.recipe/v0",
+        "generator": "pump.centrifugal",
+        "version": 0,
+        "params": {
+          "label": "P-205",
+          "driver": "none",
+          "discharge": "side"
+        },
+        "style": "modern-flat",
+        "theme": "light",
+        "state": "normal"
+      }
+    },
+    {
+      "title": "Clearwell TK-301",
+      "recipe": {
+        "schema": "vt.recipe/v0",
+        "generator": "tank.process",
+        "version": 0,
+        "params": {
+          "label": "TK-301",
+          "level": 72,
+          "agitator": false
+        },
+        "style": "modern-flat",
+        "theme": "light",
+        "state": "normal"
+      }
+    },
+    {
+      "title": "Flocculation tank TK-110",
+      "recipe": {
+        "schema": "vt.recipe/v0",
+        "generator": "tank.process",
+        "version": 0,
+        "params": {
+          "label": "TK-110",
+          "bottom": "cone",
+          "level": 58
+        },
+        "style": "modern-flat",
+        "theme": "light",
+        "state": "running"
+      }
+    },
+    {
+      "title": "Filter inlet valve XV-401",
+      "recipe": {
+        "schema": "vt.recipe/v0",
+        "generator": "valve.two-way",
+        "version": 0,
+        "params": {
+          "label": "XV-401",
+          "actuator": "pneumatic"
+        },
+        "style": "modern-flat",
+        "theme": "light",
+        "state": "normal"
+      }
+    },
+    {
+      "title": "Backwash valve MOV-402",
+      "recipe": {
+        "schema": "vt.recipe/v0",
+        "generator": "valve.two-way",
+        "version": 0,
+        "params": {
+          "label": "MOV-402",
+          "body": "ball",
+          "actuator": "motor"
+        },
+        "style": "modern-flat",
+        "theme": "light",
+        "state": "maintenance"
+      }
+    },
+    {
+      "title": "Blower motor M-501",
+      "recipe": {
+        "schema": "vt.recipe/v0",
+        "generator": "motor.induction",
+        "version": 0,
+        "params": {
+          "label": "M-501",
+          "size": "large"
+        },
+        "style": "high-performance",
+        "theme": "light",
+        "state": "running"
+      }
+    }
+  ]
+}

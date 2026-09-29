@@ -153,10 +153,15 @@ export interface Route {
   page: PageId;
   /** Share code for the symbols builder (#/d/<code>). */
   code?: string;
+  /** Pack URL for the gallery (#/symbols/gallery?pack=<url>). */
+  pack?: string;
 }
 
 export function parseHash(hash = location.hash): Route {
-  const h = hash.replace(/^#\/?/, "").replace(/\/$/, "");
+  const [path, query = ""] = hash.replace(/^#\/?/, "").split("?");
+  const h = path!.replace(/\/$/, "");
+  const pack = new URLSearchParams(query).get("pack") ?? undefined;
+  if (h === "symbols/gallery" && pack) return { page: "symbols.gallery", pack };
   // Share links stay short and stable: #/d/<code> (docs/SHARING.md).
   const m = h.match(/^(?:symbols\/)?d\/([A-Za-z0-9._-]+)$/);
   if (m) return { page: "symbols.builder", code: m[1] };

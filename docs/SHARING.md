@@ -26,7 +26,7 @@ Gallery entries are CC0-1.0, so anyone can use them in any plant without having 
 
 ## Later, still $0
 
-- **Packs:** a JSON file of recipes (and colour overrides) loaded from any URL, for team libraries hosted wherever a team already keeps files. Data only; new generators arrive only as reviewed code.
+- **Packs (built):** a `vt.pack/v0` JSON file of designs plus an optional team theme. Load one from any HTTPS URL that allows cross-origin reads (a GitHub raw link works) or from a file on the Gallery page. Share it as `#/symbols/gallery?pack=<url>`. Use **Add to my pack** in the builder to collect designs on your device and download them as a pack. Packs are data only: never code, with every recipe and token sanitised. There's a demo at `/packs/water-treatment.pack.json`.
 - **Embeds:** a `<vt-symbol recipe="…" state="running">` web component served from a free CDN.
 
 Hosted features like short links, accounts, private libraries or comments would need a server and someone to run it. Build them only if people ask.

@@ -115,6 +115,9 @@ export function App() {
     case "symbols.gallery":
       content = (
         <GalleryPage
+          packUrl={route.pack}
+          notify={notify}
+          onApplyTheme={(base, tokens) => setDesign((d) => ({ ...d, theme: base, tokens }))}
           onOpen={(r) => {
             setDesign((d) => applyRecipe(d, r));
             navigate("symbols.builder");

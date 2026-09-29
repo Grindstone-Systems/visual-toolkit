@@ -25,6 +25,7 @@ import { Describe } from "../ai/Describe.tsx";
 import { applyRecipe, designFromFile, designLink, toRecipe, type Design } from "../design.ts";
 import { downloadBlob, downloadFile, svgToPng } from "../download.ts";
 import { gallerySubmitUrl } from "../gallery.ts";
+import { readMyPack, writeMyPack } from "../packs.ts";
 import { Section, Segmented } from "../ui/controls.tsx";
 import { Icon } from "../ui/icons.tsx";
 
@@ -362,6 +363,17 @@ function SharePanel({ design, notify, onOpenFile }: { design: Design; notify: (m
         </button>
         <button onClick={() => fileRef.current?.click()}>Open file…</button>
       </div>
+      <button
+        onClick={() => {
+          const gen = getGenerator(design.generator)!;
+          const label = String(design.params[gen.id]?.label ?? "").trim();
+          const entries = readMyPack();
+          writeMyPack([...entries, { title: label ? `${label} · ${gen.name}` : gen.name, recipe: toRecipe(design) }]);
+          notify(`Added to My pack (${entries.length + 1}). Find it in the Gallery to download or share.`);
+        }}
+      >
+        Add to my pack
+      </button>
       <input
         ref={fileRef}
         type="file"

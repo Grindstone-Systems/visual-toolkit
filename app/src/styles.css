@@ -515,3 +515,15 @@ button.primary:hover { filter: brightness(1.12); }
 .describe-remember { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
 .describe-error { margin: 0; font-size: 12.5px; color: var(--vt-state-fault); }
 .describe .primary { padding: 8px 14px; }
+
+/* ------------------------------ packs ------------------------------ */
+.pack-bar { display: grid; gap: 10px; margin-bottom: 22px; }
+.pack-bar .block-title { margin: 0; }
+.pack-load { display: flex; flex-wrap: wrap; gap: 8px; }
+.pack-load input { flex: 1 1 280px; min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--control); font: inherit; font-size: 13px; }
+.pack-load button { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--control); font-weight: 600; font-size: 13px; }
+.pack-section { display: grid; gap: 12px; margin-bottom: 28px; }
+.pack-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.pack-head h2 { margin: 0; font-size: 18px; }
+.pack-actions, .card-actions { display: flex; gap: 8px; align-items: center; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
