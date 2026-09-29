@@ -4,12 +4,16 @@ import { processValve } from "./valve.ts";
 import { inductionMotor } from "./motor.ts";
 import { processTank } from "./tank.ts";
 import { beltConveyor } from "./conveyor.ts";
+import { staticMixer } from "./mixer.ts";
+import { isaTransmitter } from "./instrument.ts";
+import { pipeFitting } from "./fitting.ts";
 
 export { defaultParams, sanitizeParams } from "./params.ts";
 export { centrifugalPump, processValve, inductionMotor, processTank, beltConveyor };
+export { staticMixer, isaTransmitter, pipeFitting };
 
 /** Every generator version ever published stays registered (share links depend on it). */
-export const GENERATORS: Generator[] = [centrifugalPump, processValve, inductionMotor, processTank, beltConveyor];
+export const GENERATORS: Generator[] = [centrifugalPump, processValve, inductionMotor, processTank, beltConveyor, staticMixer, isaTransmitter, pipeFitting];
 
 /** Families shown in the builder, including ones on the roadmap. */
 export const FAMILIES: { family: string; name: string; generator?: string }[] = [
@@ -18,6 +22,9 @@ export const FAMILIES: { family: string; name: string; generator?: string }[] = 
   { family: "motor", name: "Motor", generator: "motor.induction" },
   { family: "tank", name: "Tank", generator: "tank.process" },
   { family: "conveyor", name: "Conveyor", generator: "conveyor.belt" },
+  { family: "mixer", name: "Static mixer", generator: "mixer.static" },
+  { family: "instrument", name: "Instrument", generator: "instrument.transmitter" },
+  { family: "pipe", name: "Pipe fitting", generator: "pipe.fitting" },
 ];
 
 export function getGenerator(id: string, version?: number): Generator | undefined {

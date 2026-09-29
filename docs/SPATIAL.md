@@ -2,7 +2,7 @@
 
 A generator can also build a **stylised 3D model** from the same parameters as its 2D symbol. It exports as standard **glTF 2.0 binary (`.glb`)**, which three.js, Babylon, PlayCanvas, Blender and most other 3D tools open. Visual Toolkit metadata rides inside the file, in `extras`, so a renderer can switch operating state at runtime.
 
-Status: **all five families** (pump, valve, motor, tank, conveyor). Every configuration of every family passes the Khronos glTF validator with zero errors, faces outward and is byte-for-byte deterministic (`lib/spatial/spatial.test.ts`).
+Status: **all eight families** (pump, valve, motor, tank, conveyor, static mixer, instrument, pipe fitting). Every configuration of every family passes the Khronos glTF validator with zero errors, faces outward and is byte-for-byte deterministic (`lib/spatial/spatial.test.ts`).
 
 | Family | 3D highlights |
 | --- | --- |
@@ -11,6 +11,9 @@ Status: **all five families** (pump, valve, motor, tank, conveyor). Every config
 | Induction motor | Foot or flange mount, three frame sizes. Cutaway shows the rotor and winding end-turns |
 | Process tank | Ellipsoidal or cone bottom, sight glass that follows the level, manway, agitator. Cutaway shows the liquid and the impeller |
 | Belt conveyor | Procedural length, idlers, gearmotor, cleats and cartons or bulk material sliding along the belt |
+| Static mixer | Line-size housing, weld-neck flanges or bevels, pipe supports, dosing quill, beacon. Cutaway shows the helical element train |
+| Instrument / transmitter | Dual-compartment housing with lit LCD (or blind cover and LED), cable gland; process connection by variable: DN 25 flange + 2-valve block (P), coplanar 3-valve manifold (PD/F), DN 80 side flange (L), thermowell / probe (T/A). Cutaway shows the electronics |
+| Pipe fitting | 90°/45° long-radius elbows, equal tee, concentric reducer, spool; DN 50–150 at real sizes, flanged or butt-weld, with exact ports |
 
 ## What is shared with the 2D symbol
 
@@ -54,6 +57,18 @@ Status: **all five families** (pump, valve, motor, tank, conveyor). Every config
   "badge": [-0.2, 0.92, 0]            // anchor for a floating state badge
 }
 ```
+
+## Piping ports
+
+Piping objects (`pipe.fitting`, `mixer.static`, instrument process connections) share one size table, `lib/symbols/pipe.ts` (`PIPE`): ISO pipe OD, ASME B16.9 centre-to-end and EN 1092-1 PN 16 weld-neck flanges. Their 3D ports follow one convention so a layout tool can join them:
+
+- `position` is the **connection face**: the flange's raised face, or the bevel tip of a butt-weld end.
+- `direction` is the exact **unit outward** normal of that face (pipe continues along it).
+- `size` is the pipe **outside diameter** in metres (DN 80 → 0.0889). Mate ports with equal `size` and opposite `direction`.
+- A butt-weld end is at the B16.9 centre-to-end distance from the fitting's centreline intersection; a flanged end adds one flange height (`PIPE[dn].flange.h`).
+- Fittings are authored in the XY plane with end `a` facing −X (elbows turn to +Y, the tee branch is +Y), turned about Z by `rotation` (clockwise, matching 2D), then seated on y = 0. Nodes are `body`, plus `flanges` + `flange-bolts` or `welds`.
+
+In 2D, port `direction` is in degrees (0 = right, 90 = down) and `size` is the drawn pipe width (DN 50/80/100/150 → 8/10/12/16 units).
 
 ## Beyond state: cutaway, levels and effects
 

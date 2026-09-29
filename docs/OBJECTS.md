@@ -17,7 +17,7 @@ An object says what its parts **are** (`body`, `rotor`, `indicator`…), not wha
 ## Vocabularies
 
 - **States:** `normal · running · warning · fault · maintenance · disabled · comm-loss`
-- **Part roles:** `body · body-secondary · nozzle · flange · base · detail · rotor · indicator`
+- **Part roles:** `body · body-secondary · nozzle · flange · base · detail · rotor · indicator · fill · product`
 - **Colour tokens:** `surface.*`, `text.*`, `equipment.*`, `state.*`
 
 ## The one rule for generators
@@ -34,6 +34,10 @@ There are two modes:
 
 - **Resolved** (default) uses literal colours for one state. It works everywhere: `<img>`, Ignition, Figma, Inkscape.
 - **Smart** embeds all states, switched by the root `data-vt-state` attribute. Colours are `var(--vt-*, fallback)` so a host page can re-theme it. Level-driven regions (tank contents) follow `--vt-level` (0–1) with a smooth transition.
+
+## Text inside symbols
+
+Instrument bubbles need tag letters and loop numbers as part of the geometry. They are drawn with a small single-stroke font (`lib/symbols/glyphs.ts`) as ordinary `detail` paths, so the SVG needs no font and restyles with the rest of the symbol. The optional tag `label` is still rendered as text under the symbol.
 
 ## Motion hints
 
