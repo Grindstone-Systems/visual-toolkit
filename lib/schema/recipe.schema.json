@@ -68,6 +68,17 @@
           "pattern": "^#[0-9a-fA-F]{6}$"
         }
       }
+    },
+    "paint": {
+      "enum": [
+        "slate",
+        "machinery-green",
+        "signal-blue",
+        "grey",
+        "safety-yellow",
+        "fire-red",
+        "theme"
+      ]
     }
   }
 }

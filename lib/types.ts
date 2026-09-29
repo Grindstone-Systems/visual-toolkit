@@ -169,6 +169,57 @@ export interface VtObject {
 }
 
 /* ------------------------------------------------------------------ */
+/* Spatial (3D) — same identity, part names and states as the 2D object */
+/* ------------------------------------------------------------------ */
+
+export type Vec3 = [number, number, number];
+
+export interface Mesh {
+  positions: number[];
+  normals: number[];
+  indices: number[];
+}
+
+export interface SpatialNode {
+  /** Matches the 2D region id where the part exists in both. */
+  id: string;
+  role: RegionRole;
+  label: string;
+  /** Vertices are relative to `translation`, which is the node's pivot. */
+  mesh: Mesh;
+  translation: Vec3;
+  /** Surface finish; decides metalness/roughness. Colour still comes from the role. */
+  finish?: Finish;
+}
+
+export type Finish = "paint" | "cast" | "steel" | "lens" | "rubber";
+
+export interface SpatialPort {
+  id: string;
+  kind: PortKind;
+  position: Vec3;
+  direction: Vec3;
+}
+
+export interface SpatialAnimation {
+  id: string;
+  /** Node rotated about its pivot, along a local axis. */
+  node: string;
+  axis: "x" | "y" | "z";
+  periodMs: number;
+  states: StateName[];
+}
+
+/** Stylised 3D model in metres, +Y up, ready to become glTF. */
+export interface SpatialModel {
+  nodes: SpatialNode[];
+  ports: SpatialPort[];
+  animations: SpatialAnimation[];
+  /** Where a renderer should float the state badge. */
+  badge: Vec3;
+}
+
+/* ------------------------------------------------------------------ */
 /* Generators & parameters                                             */
 /* ------------------------------------------------------------------ */
 
@@ -195,6 +246,8 @@ export interface Generator {
   description: string;
   params: ParamDef[];
   generate(params: ParamValues): VtObject;
+  /** Optional stylised 3D model from the same params (the Spatial tier). */
+  spatial?(params: ParamValues): SpatialModel;
 }
 
 /* ------------------------------------------------------------------ */
@@ -203,6 +256,10 @@ export interface Generator {
 
 export type StyleId = "high-performance" | "modern-flat" | "outline";
 export type ThemeId = "light" | "dark";
+
+/** Equipment paint for 3D models. "theme" uses the style's neutral colours. */
+export const PAINTS = ["slate", "machinery-green", "signal-blue", "grey", "safety-yellow", "fire-red", "theme"] as const;
+export type PaintId = (typeof PAINTS)[number];
 
 /**
  * A recipe is everything needed to reproduce a visual exactly. Because
@@ -217,6 +274,8 @@ export interface Recipe {
   style: StyleId;
   theme: ThemeId;
   state: StateName;
+  /** Paint for the 3D model (2D symbols stay on theme colours). */
+  paint?: PaintId;
   /** Optional per-recipe token overrides (custom brand accents etc). */
   tokens?: Partial<Record<TokenName, string>>;
 }

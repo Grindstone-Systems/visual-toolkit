@@ -11,3 +11,6 @@ export * from "./render.ts";
 export * from "./share.ts";
 export * from "./exporters.ts";
 export * from "./symbols/index.ts";
+export * from "./spatial/mesh.ts";
+export * from "./spatial/gltf.ts";
+export * from "./spatial/export.ts";

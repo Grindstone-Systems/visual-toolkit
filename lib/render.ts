@@ -6,6 +6,7 @@ import {
   type Shape,
   type StateName,
   type StyleId,
+  type PaintId,
   type ThemeId,
   type TokenName,
   type VtObject,
@@ -19,6 +20,8 @@ export interface RenderOptions {
   theme: ThemeId;
   state: StateName;
   tokens?: Partial<TokenSet>;
+  /** 3D paint (ignored by the 2D renderer; carried in recipes). */
+  paint?: PaintId;
   /**
    * resolved — literal colours for the chosen state (most portable: Ignition,
    *            Figma, Inkscape, <img>).
@@ -139,6 +142,13 @@ function badgeEl(kind: BadgeKind, at: [number, number], color: Resolve, cls = ""
   );
 }
 
+/** A state badge as a standalone SVG (for overlays such as the 3D preview). */
+export function badgeSvg(kind: BadgeKind, theme: ThemeId, size = 28): string {
+  const tokens = getTheme(theme).tokens;
+  const color: Resolve = (t) => (t === undefined ? undefined : t === "none" ? "none" : tokens[t]);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 20 20" width="${size}" height="${size}" aria-hidden="true">${badgeEl(kind, [0, 0], color)}</svg>`;
+}
+
 /* ---------------------------- animation ---------------------------- */
 
 /**
@@ -220,7 +230,7 @@ function levelCss(vo: VtObject, prefix: string): string {
     .join("");
 }
 
-export function recipeFor(vo: VtObject, o: Pick<RenderOptions, "style" | "theme" | "state" | "tokens">): Recipe {
+export function recipeFor(vo: VtObject, o: Pick<RenderOptions, "style" | "theme" | "state" | "tokens" | "paint">): Recipe {
   const r: Recipe = {
     schema: RECIPE_SCHEMA,
     generator: vo.generator.id,
@@ -231,6 +241,7 @@ export function recipeFor(vo: VtObject, o: Pick<RenderOptions, "style" | "theme"
     state: o.state,
   };
   if (o.tokens && Object.keys(o.tokens).length) r.tokens = o.tokens as Recipe["tokens"];
+  if (o.paint) r.paint = o.paint;
   return r;
 }
 

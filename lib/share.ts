@@ -1,4 +1,4 @@
-import { RECIPE_SCHEMA, STATES, type Recipe } from "./types.ts";
+import { PAINTS, RECIPE_SCHEMA, STATES, type Recipe } from "./types.ts";
 
 /**
  * Share codes: a recipe serialised into a compact, URL-safe string.
@@ -31,18 +31,19 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
 
 /** Minimal form: drop the schema tag (implied) to keep codes short. */
 function pack(r: Recipe): unknown[] {
-  return [r.generator, r.version, r.params, r.style, r.theme, r.state, r.tokens ?? null];
+  return [r.generator, r.version, r.params, r.style, r.theme, r.state, r.tokens ?? null, r.paint ?? null];
 }
 
 function unpack(a: unknown): Recipe {
   if (!Array.isArray(a) || a.length < 6) throw new Error("Malformed share code");
-  const [generator, version, params, style, theme, state, tokens] = a;
+  const [generator, version, params, style, theme, state, tokens, paint] = a;
   if (typeof generator !== "string" || typeof version !== "number" || typeof params !== "object" || !params) {
     throw new Error("Malformed share code");
   }
   if (!STATES.includes(state)) throw new Error("Unknown state in share code");
   const r: Recipe = { schema: RECIPE_SCHEMA, generator, version, params, style, theme, state } as Recipe;
   if (tokens) r.tokens = tokens as Recipe["tokens"];
+  if (typeof paint === "string" && (PAINTS as readonly string[]).includes(paint)) r.paint = paint as Recipe["paint"];
   return r;
 }
 

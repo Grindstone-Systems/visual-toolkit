@@ -8,3 +8,4 @@ examples/out/
 
 # Internal planning documents (kept local, not published)
 docs/sources/
+app/_*.html

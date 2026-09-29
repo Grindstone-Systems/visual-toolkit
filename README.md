@@ -24,6 +24,7 @@ One repository, one package:
 | --- | --- |
 | `lib/` | The engine: types, geometry, styles, themes, SVG renderer, share codes, exporters |
 | `lib/symbols/` | Procedural generators (pump, valve, motor, tank, conveyor) and their registry |
+| `lib/spatial/` | 3D: mesh toolkit, glTF (.glb) writer, state metadata. See docs/SPATIAL.md |
 | `app/` | The builder (React + Vite, fully static) |
 | `gallery/` | Shared designs as small JSON recipes, added by pull request |
 | `examples/web/` | A plain HTML page driving a smart SVG |

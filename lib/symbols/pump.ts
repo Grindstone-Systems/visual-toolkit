@@ -1,6 +1,7 @@
 import { Geo, identity, mirrorX, type PathBuilder } from "../geometry.ts";
 import { OBJECT_SCHEMA, type Generator, type Region, type Shape, type VtObject } from "../types.ts";
 import { labelLayout, sanitizeParams } from "./params.ts";
+import { centrifugalPump3d } from "./pump3d.ts";
 
 /**
  * Centrifugal pump — end-suction volute with optional coupled motor.
@@ -75,6 +76,9 @@ export const centrifugalPump: Generator = {
   name: "Centrifugal pump",
   description: "End-suction volute pump with optional coupled motor and baseplate.",
   params: [...params],
+  spatial(raw) {
+    return centrifugalPump3d(sanitizeParams(this.params, raw));
+  },
   generate(raw): VtObject {
     const p = sanitizeParams(this.params, raw);
     const motor = p.driver === "motor";
