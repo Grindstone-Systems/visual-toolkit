@@ -21,7 +21,8 @@ import {
   type VtObject,
 } from "../../../lib/index.ts";
 import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { designFromFile, designLink, toRecipe, type Design } from "../design.ts";
+import { Describe } from "../ai/Describe.tsx";
+import { applyRecipe, designFromFile, designLink, toRecipe, type Design } from "../design.ts";
 import { downloadBlob, downloadFile, svgToPng } from "../download.ts";
 import { gallerySubmitUrl } from "../gallery.ts";
 import { Section, Segmented } from "../ui/controls.tsx";
@@ -120,6 +121,17 @@ export function Builder({
   return (
     <div className="builder">
       <aside className="panel left" aria-label="Configure">
+        <Describe
+          theme={design.theme}
+          onRecipe={(r, summary) => {
+            try {
+              setDesign((d) => ({ ...applyRecipe(d, r), tokens: d.tokens }));
+              notify(summary);
+            } catch (e) {
+              notify((e as Error).message);
+            }
+          }}
+        />
         <Section step="1" title="Equipment">
           <div className="families">
             {FAMILIES.map((f) => {
