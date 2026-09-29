@@ -108,3 +108,19 @@ describe("smart behaviours", () => {
     expect(renderSvg(tank, { ...base, state: "running" })).toContain("@keyframes process-tank-turn");
   });
 });
+
+describe("smart SVG isolation", () => {
+  it("scopes every rule to its own root so symbols can share a page", () => {
+    const svg = renderSvg(pump, { ...base, mode: "themable", idPrefix: "a" });
+    const css = svg.match(/<style>([\s\S]*?)<\/style>/)![1]!;
+    const selectors = css
+      .replace(/@keyframes[^{]+\{(?:[^{}]*\{[^}]*\})*[^}]*\}/g, "")
+      .replace(/@media[^{]+\{[^}]*\{[^}]*\}\}/g, "")
+      .split("}")
+      .map((r) => r.split("{")[0]!.trim())
+      .filter(Boolean);
+    for (const sel of selectors) for (const part of sel.split(",")) expect(part.trim()).toMatch(/^#a[\s[-]/);
+    expect(svg).toContain('<svg xmlns="http://www.w3.org/2000/svg" viewBox=');
+    expect(svg).toContain('id="a" class="vt-object"');
+  });
+});

@@ -285,7 +285,9 @@ export function renderSvg(vo: VtObject, opts: RenderOptions): string {
     if (treatment.badge) parts.push(badgeEl(treatment.badge, vo.anchors.badge, literal));
   } else {
     // Themable: paint through classes so every state lives in one file.
-    const sel = (s: StateName) => `[data-vt-state="${s}"]`;
+    // Scope every rule to this SVG so several symbols can share one page.
+    const scope = `#${prefix}`;
+    const sel = (s: StateName) => `${scope}[data-vt-state="${s}"]`;
     const roles = new Map(vo.regions.map((r) => [`${r.role}|${r.paint}`, r] as const));
     for (const s of STATES) {
       for (const r of roles.values()) {
@@ -294,7 +296,7 @@ export function renderSvg(vo: VtObject, opts: RenderOptions): string {
     }
     for (const r of vo.regions) parts.push(regionGroup(r, prefix, "", "themable", defs));
     css.push(levelCss(vo, prefix));
-    css.push(`.vt-region,.vt-badge{transition:fill .35s,stroke .35s,opacity .35s}`);
+    css.push(`${scope} .vt-region,${scope} .vt-badge{transition:fill .35s,stroke .35s,opacity .35s}`);
     if (bodyRegions.length && anyHatch) {
       parts.push(
         `<g class="vt-hatch" fill="url(#${prefix}-hatch)" stroke="none" pointer-events="none">` +
@@ -302,7 +304,7 @@ export function renderSvg(vo: VtObject, opts: RenderOptions): string {
           `</g>`,
       );
       const hatched = STATES.filter((s) => style.states[s].hatch);
-      css.push(`.vt-hatch{display:none}${hatched.map((s) => `${sel(s)} .vt-hatch`).join(",")}{display:inline}`);
+      css.push(`${scope} .vt-hatch{display:none}${hatched.map((s) => `${sel(s)} .vt-hatch`).join(",")}{display:inline}`);
     }
     const kinds = new Set<BadgeKind>();
     for (const s of STATES) {
@@ -310,7 +312,7 @@ export function renderSvg(vo: VtObject, opts: RenderOptions): string {
       if (b) kinds.add(b);
     }
     for (const k of kinds) parts.push(badgeEl(k, vo.anchors.badge, cssVar));
-    css.push(`.vt-badge{display:none}`);
+    css.push(`${scope} .vt-badge{display:none}`);
     for (const s of STATES) {
       const b = style.states[s].badge;
       if (b) css.push(`${sel(s)} .vt-badge--${b}{display:inline}`);
@@ -321,7 +323,7 @@ export function renderSvg(vo: VtObject, opts: RenderOptions): string {
     css.push(
       mode === "resolved"
         ? animationCss(vo, prefix, style, [state], () => "")
-        : animationCss(vo, prefix, style, STATES, (s) => `[data-vt-state="${s}"] `),
+        : animationCss(vo, prefix, style, STATES, (s) => `#${prefix}[data-vt-state="${s}"] `),
     );
   }
 
@@ -340,7 +342,7 @@ export function renderSvg(vo: VtObject, opts: RenderOptions): string {
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${vw} ${vh}" width="${width}" height="${height}" ` +
-    `class="vt-object" role="img" aria-labelledby="${prefix}-title" data-vt-object="${vo.identity.kind}" ` +
+    `id="${prefix}" class="vt-object" role="img" aria-labelledby="${prefix}-title" data-vt-object="${vo.identity.kind}" ` +
     `data-vt-generator="${vo.generator.id}@${vo.generator.version}" data-vt-style="${style.id}" data-vt-state="${state}" ` +
     `stroke-linejoin="round" stroke-linecap="round">` +
     `<title id="${prefix}-title">${esc(title)}</title>` +
