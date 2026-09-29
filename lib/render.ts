@@ -40,10 +40,13 @@ export interface RenderOptions {
   embedRecipe?: boolean;
 }
 
-const FONT = "Inter, 'Segoe UI', Roboto, Arial, sans-serif";
+/** Label font stack (shared with the platform exporters). */
+export const FONT = "Inter, 'Segoe UI', Roboto, Arial, sans-serif";
 
-const esc = (s: string) =>
+/** XML-escape text and attribute values. */
+export const escapeXml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const esc = escapeXml;
 
 const STATE_LABEL: Record<StateName, string> = {
   normal: "Normal",
@@ -100,7 +103,7 @@ function paintCss(p: Paint, color: Resolve): string {
 
 /* ---------------------------- badges ---------------------------- */
 
-const BADGE_GLYPH_TOKEN: Record<BadgeKind, TokenName> = {
+export const BADGE_GLYPH_TOKEN: Record<BadgeKind, TokenName> = {
   warning: "state.on-warning",
   fault: "state.on-alarm",
   maintenance: "state.on-alarm",
@@ -108,7 +111,7 @@ const BADGE_GLYPH_TOKEN: Record<BadgeKind, TokenName> = {
   "comm-loss": "state.on-alarm",
 };
 
-const BADGE_FILL_TOKEN: Record<BadgeKind, TokenName> = {
+export const BADGE_FILL_TOKEN: Record<BadgeKind, TokenName> = {
   warning: "state.warning",
   fault: "state.fault",
   maintenance: "state.maintenance",
@@ -118,7 +121,7 @@ const BADGE_FILL_TOKEN: Record<BadgeKind, TokenName> = {
 
 const EXCLAIM = `<path d="M0 -3.4V1.2"/><circle cx="0" cy="3.9" r="0.35"/>`;
 
-const BADGE_SHAPES: Record<BadgeKind, { outline: string; glyph: string }> = {
+export const BADGE_SHAPES: Record<BadgeKind, { outline: string; glyph: string }> = {
   warning: { outline: `<path d="M0 -8.6L8.8 6.6H-8.8Z"/>`, glyph: `<g transform="translate(0 1.2)">${EXCLAIM}</g>` },
   fault: { outline: `<path d="M0 -9L9 0L0 9L-9 0Z"/>`, glyph: EXCLAIM },
   maintenance: { outline: `<rect x="-7.2" y="-7.2" width="14.4" height="14.4" rx="2.4"/>`, glyph: `<path d="M-3.4 3.2V-3.2L0 0.8L3.4 -3.2V3.2"/>` },

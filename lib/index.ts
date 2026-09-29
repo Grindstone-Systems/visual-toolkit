@@ -14,3 +14,4 @@ export * from "./symbols/index.ts";
 export * from "./spatial/mesh.ts";
 export * from "./spatial/gltf.ts";
 export * from "./spatial/export.ts";
+export * from "./platforms.ts";
