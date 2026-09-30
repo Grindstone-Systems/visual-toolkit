@@ -17,7 +17,8 @@ const CSS = `
 .sc3-group{display:flex;gap:2px;padding:3px;border-radius:9px;background:color-mix(in srgb,var(--panel,#fff) 86%,transparent);border:1px solid var(--line,#ddd);backdrop-filter:blur(6px)}
 .sc3-group button{border:0;background:none;padding:5px 10px;border-radius:7px;font:600 12px/1 inherit;font-family:inherit;color:var(--muted,#666);cursor:pointer}
 .sc3-group button[aria-pressed="true"]{background:var(--accent,#272925);color:var(--on-accent,#fff)}
-.sc3-badge{position:absolute;left:0;top:0;pointer-events:none}
+.sc3-badge{position:absolute;left:0;top:0;pointer-events:none;display:grid;justify-items:center;gap:3px}
+.sc3-badge b{font:650 11px/1 var(--font,inherit);letter-spacing:.04em;padding:3px 6px;border-radius:5px;background:color-mix(in srgb,var(--panel,#fff) 88%,transparent);color:var(--ink,#222);border:1px solid var(--line,#ddd);white-space:nowrap}
 `;
 
 /** Arc length along the pipe's centreline for every vertex, so flow can stream along it. */
@@ -76,7 +77,7 @@ export default function Scene3D({
     const el = host.current!;
     const stage = createStage(el, theme, live.current.env);
     const liquid = getTheme(theme).tokens["process.liquid"];
-    const items: { id: string; model: VtModel; group: THREE.Object3D; badge: HTMLDivElement }[] = [];
+    const items: { id: string; tag: string; model: VtModel; group: THREE.Object3D; badge: HTMLDivElement }[] = [];
     const flowMats: THREE.MeshStandardNodeMaterial[] = [];
     let flowing = new Set<string>();
 
@@ -95,7 +96,10 @@ export default function Scene3D({
         const s = st[it.id] ?? "normal";
         it.model.apply(s, motionOn);
         const b = it.model.extras.states[s]?.badge;
+        const tag = document.createElement("b");
+        tag.textContent = it.tag;
         it.badge.innerHTML = b ? badgeSvg(b, theme, 26) : "";
+        if (it.tag) it.badge.append(tag);
       }
       flowing = new Set(Object.entries(st).filter(([, s]) => s === "running").map(([id]) => id));
       for (const p of pipeMeshesByFlow) p.mesh.material = motionOn && p.items.some((id) => flowing.has(id)) ? flowMat : idleMat;
@@ -129,7 +133,7 @@ export default function Scene3D({
           const badge = document.createElement("div");
           badge.className = "sc3-badge";
           badges.current?.append(badge);
-          items.push({ id: p.item.id, model, group: offset, badge });
+          items.push({ id: p.item.id, tag: vo.label?.text ?? "", model, group: offset, badge });
         }
         for (const q of pipeMeshes(scene)) {
           const g = new THREE.BufferGeometry();
