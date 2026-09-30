@@ -1,7 +1,7 @@
 schema: oic/project/v2
 id: visual-toolkit
 name: Visual Toolkit
-summary: Generate state-aware industrial symbols and stylised 3D equipment from parameters, then export SVG, smart SVG or glTF.
+summary: Generate state-aware industrial symbols and stylised 3D equipment from parameters, connect them into skids, then export SVG, smart SVG or glTF.
 category: Visualization
 tags:
   - Symbols
@@ -25,12 +25,20 @@ branding:
     on_dark: ./media/logo.png
     alt: Visual Toolkit mark, a white pump outline with a green status dot on a charcoal tile
 media:
+  - id: skid-composer-3d
+    type: image
+    src: ./media/skid-composer-3d.jpg
+    title: Skid composer in 3D
+    alt: The Visual Toolkit skid composer showing a tank, two control valves and a pump set on a dark grid, joined by swept pipes with glowing flow tracers and tag labels, next to an HMI review checklist.
+    caption: Mimics → Piping & connections · One scene, shown as a 2D mimic or this 3D layout, rendered live in the app
+    credit: Grindstone Systems
+    rights: Provided for display, resizing and caching in the OIC project listing.
   - id: plant-floor
     type: image
     src: ./media/plant-floor.jpg
-    title: Five generated families in 3D
+    title: Generated equipment in 3D
     alt: A tiled plant floor with a stainless process tank, a blue end-suction pump on a baseplate, a red pneumatic control valve, a green motor and a yellow-framed belt conveyor carrying cartons.
-    caption: Each model was generated from builder parameters and exported as glTF, then the five were arranged in one scene for this image. The builder itself shows one model at a time.
+    caption: Each model was generated from builder parameters and exported as glTF, then arranged in one scene for this image with a dev harness.
     credit: Grindstone Systems
     rights: Provided for display, resizing and caching in the OIC project listing.
   - id: builder-3d
@@ -104,22 +112,28 @@ requirements:
   - name: Ignition Perspective
     kind: software
     cost: optional-paid
-    notes: Optional destination for exported assets. The Ignition kit and guide are
-      provided, but import workflows have not yet been validated on an Ignition
-      gateway.
+    notes: Optional destination for exported assets. SVG images, tag-driven state
+      sets, the icon repository and the Drawing component were verified on an
+      Ignition 8.3.9 gateway. 8.1 and the Designer's drag-and-drop import are
+      untested.
 actions:
   - id: builder
     type: demo
     url: https://grindstone-systems.github.io/visual-toolkit/
     primary: true
     label: Open the builder
-    description: Configure equipment, preview states, switch to 3D and export.
+    description: Configure equipment, preview states, switch to 3D, compose skids and export.
       Runs in your browser with no account.
   - id: gallery
     type: demo
     url: https://grindstone-systems.github.io/visual-toolkit/#/gallery
     primary: false
     label: Browse the gallery
+  - id: composer
+    type: demo
+    url: https://grindstone-systems.github.io/visual-toolkit/#/mimics
+    primary: false
+    label: Try the skid composer
   - id: docs
     type: docs
     url: https://github.com/Grindstone-Systems/visual-toolkit#readme
