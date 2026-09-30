@@ -27,6 +27,7 @@ export default function Spatial3D({
   motion,
   defaultEnv = "studio",
   defaultCutaway = false,
+  defaultExploded = false,
 }: {
   glb: Uint8Array;
   state: StateName;
@@ -34,6 +35,7 @@ export default function Spatial3D({
   motion: boolean;
   defaultEnv?: Environment;
   defaultCutaway?: boolean;
+  defaultExploded?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
@@ -42,16 +44,18 @@ export default function Spatial3D({
     setEnv: (e: Environment) => void;
     setCutaway: (on: boolean) => void;
     setLevel: (v: number) => void;
+    setExplode: (t: number) => void;
   } | null>(null);
   const [backend, setBackend] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const extras = useMemo(() => glbExtras(glb), [glb]);
   const [env, setEnv] = useState<Environment>(defaultEnv);
   const [cutaway, setCutaway] = useState(defaultCutaway);
+  const [exploded, setExploded] = useState(defaultExploded);
   const [level, setLevel] = useState(() => extras.levels[0]?.value ?? 0.6);
   // Latest UI values for the async loader, without rebuilding the scene.
-  const live = useRef({ state, motion, env, cutaway, level });
-  live.current = { state, motion, env, cutaway, level };
+  const live = useRef({ state, motion, env, cutaway, level, exploded });
+  live.current = { state, motion, env, cutaway, level, exploded };
   const dark = getTheme(theme).scheme === "dark";
 
   useEffect(() => {
@@ -74,6 +78,10 @@ export default function Spatial3D({
       setEnv: stage.setEnv,
       setCutaway: (on) => model?.setCut(on),
       setLevel: (v) => model?.setLevel(v),
+      setExplode: (t) => {
+        model?.setExplode(t);
+        stage.dolly(t ? 1.3 : 1 / 1.3);
+      },
     };
 
     (async () => {
@@ -88,6 +96,7 @@ export default function Spatial3D({
         stage.fit(new THREE.Box3().setFromObject(m.root));
         m.setCut(live.current.cutaway);
         m.setLevel(live.current.level);
+        if (live.current.exploded) api.current?.setExplode(1);
         api.current?.apply(live.current.state, live.current.motion);
       } catch (e) {
         setError((e as Error).message);
@@ -124,6 +133,12 @@ export default function Spatial3D({
   useEffect(() => {
     api.current?.setLevel(level);
   }, [level]);
+  const firstExplode = useRef(true);
+  useEffect(() => {
+    // The loader applies the initial value itself.
+    if (firstExplode.current) return void (firstExplode.current = false);
+    api.current?.setExplode(exploded ? 1 : 0);
+  }, [exploded]);
 
   return (
     <div className="spatial" data-dark={dark || undefined}>
@@ -144,6 +159,11 @@ export default function Spatial3D({
             </button>
           </div>
         )}
+        <div className="sp3-group">
+          <button type="button" aria-pressed={exploded} onClick={() => setExploded((x) => !x)} title="Pull the parts apart to see how the model is built">
+            Explode
+          </button>
+        </div>
         <div className="sp3-group" role="group" aria-label="Environment">
           {ENVIRONMENTS.map((e) => (
             <button key={e.id} type="button" aria-pressed={env === e.id} onClick={() => setEnv(e.id)}>

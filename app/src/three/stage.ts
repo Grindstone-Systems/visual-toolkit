@@ -30,6 +30,8 @@ export interface Stage {
   setEnv(e: Environment): void;
   /** Aim the camera and size the shadow frustum for a bounding box. */
   fit(box: THREE.Box3, view?: THREE.Vector3, distance?: number): void;
+  /** Move the camera towards (f < 1) or away from (f > 1) its target, eased over a moment. */
+  dolly(f: number): void;
   start(onFrame: (dt: number, elapsed: number) => void): void;
   isDisposed(): boolean;
   dispose(): void;
@@ -165,6 +167,7 @@ export function createStage(el: HTMLElement, theme: ThemeId, env: Environment): 
   })();
 
   const timer = new THREE.Timer();
+  let dollyLeft = 1;
 
   return {
     renderer,
@@ -203,10 +206,19 @@ export function createStage(el: HTMLElement, theme: ThemeId, env: Environment): 
       fogScale = Math.max(1, radius / 1.2);
       setEnv(currentEnv);
     },
+    dolly(f) {
+      dollyLeft *= f;
+    },
     start(onFrame) {
       renderer.setAnimationLoop(() => {
         timer.update();
-        onFrame(timer.getDelta(), timer.getElapsed());
+        const dt = timer.getDelta();
+        if (Math.abs(dollyLeft - 1) > 1e-3) {
+          const step = Math.pow(dollyLeft, Math.min(1, dt * 6));
+          dollyLeft /= step;
+          camera.position.sub(controls.target).multiplyScalar(step).add(controls.target);
+        }
+        onFrame(dt, timer.getElapsed());
         controls.update();
         if (pipeline) pipeline.render();
         else renderer.render(scene, camera);

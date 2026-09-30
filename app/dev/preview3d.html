@@ -10,5 +10,5 @@ const params = { ...defaultParams(gen.params), ...JSON.parse(q.get("p") || "{}")
 const style = q.get("style") || "modern-flat", theme = q.get("theme") || "light", state = q.get("state") || "running";
 document.body.style.background = theme === "dark" ? "#121518" : "#f3f1e9";
 const glb = spatialGlb(gen.generate(params), gen.spatial(params), { style, theme, state: "normal", paint: q.get("paint") || "slate" });
-createRoot(document.getElementById("r")).render(h(Spatial3D, { glb, state, theme, motion: q.get("motion") === "1", defaultEnv: q.get("env") || "studio", defaultCutaway: q.get("cut") === "1" }));
+createRoot(document.getElementById("r")).render(h(Spatial3D, { glb, state, theme, motion: q.get("motion") === "1", defaultEnv: q.get("env") || "studio", defaultCutaway: q.get("cut") === "1", defaultExploded: q.get("explode") === "1" }));
 </script></body></html>

@@ -32,6 +32,8 @@ export interface VtModel {
   apply(state: StateName, motion: boolean): void;
   setCut(on: boolean): void;
   setLevel(v: number): void;
+  /** 0 = assembled, 1 = parts pulled apart from the model's centre. */
+  setExplode(t: number): void;
   update(dt: number, elapsed: number, motion: boolean): void;
 }
 
@@ -113,6 +115,20 @@ export async function loadVtModel(glb: Uint8Array): Promise<VtModel> {
   });
   for (const o of sectionObjects) clipGroup.attach(o);
 
+  // Exploded view: a classic proportional expansion about the model centre,
+  // so central parts stay put and outer parts move furthest.
+  const parts: { o: THREE.Object3D; base: THREE.Vector3; dir: THREE.Vector3 }[] = [];
+  {
+    const mid = new THREE.Box3().setFromObject(gltf.scene).getCenter(new THREE.Vector3());
+    for (const o of [...gltf.scene.children, ...clipGroup.children]) {
+      if (o === clipGroup) continue;
+      const c = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3());
+      parts.push({ o, base: o.position.clone(), dir: c.sub(mid).multiply(new THREE.Vector3(0.55, 0.45, 0.55)) });
+    }
+  }
+  let explodeTarget = 0;
+  let explode = 0;
+
   const mixer = new THREE.AnimationMixer(gltf.scene);
   const actions = extras.animations
     .map((a) => {
@@ -157,8 +173,16 @@ export async function loadVtModel(glb: Uint8Array): Promise<VtModel> {
     setLevel(v) {
       for (const n of levelNodes) n.scale.y = Math.max(0.001, v);
     },
+    setExplode(t) {
+      explodeTarget = t;
+    },
     update(dt, elapsed, motion) {
       mixer.update(dt);
+      if (Math.abs(explode - explodeTarget) > 1e-4) {
+        explode += (explodeTarget - explode) * Math.min(1, dt * 6);
+        const e = explode * explode * (3 - 2 * explode);
+        for (const p of parts) p.o.position.copy(p.base).addScaledVector(p.dir, e);
+      }
       // Vibration effect (e.g. warning): a small, fast shake of the whole model.
       const shake = vibration && motion && vibration.states?.includes(current);
       const t = elapsed * Math.PI * 2 * (vibration?.frequencyHz ?? 0);
