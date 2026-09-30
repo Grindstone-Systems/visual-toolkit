@@ -342,7 +342,7 @@ export function Builder({
               </button>
               <button
                 onClick={() => downloadFile(exportPerspectiveThemeCss(design.theme, { tokens: design.tokens }))}
-                title="--vt-* tokens for a Perspective Advanced Stylesheet (unverified)"
+                title="--vt-* tokens for a Perspective Advanced Stylesheet (tested on 8.3.9)"
               >
                 Perspective CSS
               </button>
@@ -354,7 +354,7 @@ export function Builder({
               </button>
             </div>
             <p className="hint">
-              Ignition icon repository, images and Drawing were tested on 8.3.9. The WinCC, Optix and stylesheet paths are unverified. See the docs.
+              Ignition icon repository, images, Drawing and stylesheet were tested on 8.3.9. The WinCC and Optix paths are unverified. See the docs.
             </p>
           </details>
         </Section>

@@ -314,9 +314,10 @@ const titleOf = (vo: VtObject, state: StateName) =>
  *  - 8.3 path: data/config/resources/core/com.inductiveautomation.perspective/icons/
  *    plus config.json {"svgFileName": "<file>.svg"} and resource.json in the
  *    same directory; Designer restart (or Gateway "Scan File System").
- * Assumed (unverified): that Perspective's icon `color` reaches `currentColor`
- * in the monochrome variant, and that inner ids/clipPaths/patterns in a
- * repository file behave as in a browser.
+ * Tested on 8.3.9: the Icon's `props.color` is applied as CSS `fill` on the
+ * <svg>, so it does NOT reach the mono variant's `currentColor`; CSS `color`
+ * does (`props.style.color`, or a style class such as .psc-vt-state-fault).
+ * Inner ids/clipPaths/patterns rendered as in a browser.
  */
 export interface IconRepositoryItem {
   object: VtObject;
@@ -452,12 +453,13 @@ export function exportIconRepositoryKit(items: readonly IconRepositoryItem[], op
   const readme = [
     `Visual Toolkit — Perspective icon repositories "${library}" and "${mono}"`,
     "",
-    "STATUS: colour repository VERIFIED on a fresh Ignition 8.3.9 gateway (8.3 layout below).",
-    "The 8.1 folder and the mono variant's use of the icon colour are still unverified.",
+    "STATUS: both repositories VERIFIED on a fresh Ignition 8.3.9 gateway (8.3 layout below).",
+    "The 8.1 folder is still unverified.",
     "Please report what works.",
     "",
     `${library}.svg      full colour, resolved for the ${opts.theme} theme / ${opts.style} style`,
-    `${mono}.svg single colour (currentColor) — intended to follow the icon's color property`,
+    `${mono}.svg single colour (currentColor). Colour it with the Icon's style.color or a`,
+    "                 style class, NOT props.color (Perspective applies that as fill; tested on 8.3.9)",
     "",
     "Ignition 8.1",
     "  Copy ignition-8.1/*.svg to",
@@ -544,9 +546,11 @@ export function exportPerspectiveDrawingSvg(vo: VtObject, opts: PlatformOptions)
  * Documented (IA manual, Perspective > Styles): right-click Styles > "Enable
  * Advanced Stylesheet" creates a stylesheet.css resource that takes ordinary
  * CSS, and Perspective prefixes style classes with ".psc-" when injecting
- * them. Assumed (unverified): that :root custom properties declared there are
- * visible to every view and to inline SVG, and that the helper classes below
- * behave as written.
+ * them. Tested on 8.3.9 (project resource
+ * com.inductiveautomation.perspective/stylesheet/stylesheet.css): the :root
+ * custom properties reach views and inline icon SVG, and the helper classes
+ * colour Labels and mono Icons. SVG shown through an Image (URL or data URI)
+ * is a separate document and cannot see these variables.
  */
 export function exportPerspectiveThemeCss(
   themeId: ThemeId,
@@ -561,7 +565,7 @@ export function exportPerspectiveThemeCss(
       ? ""
       : "\n/* Optional helpers. A Perspective style class named vt-state-running is injected as\n" +
         " * .psc-vt-state-running; add it to an Icon so a monochrome Visual Toolkit icon takes\n" +
-        " * the state colour. Unverified. */\n" +
+        " * the state colour (tested on Ignition 8.3.9). */\n" +
         STATES.map((s) => {
           const tok: TokenName = s === "normal" ? "state.stopped" : s === "disabled" ? "state.disabled" : (`state.${s}` as TokenName);
           return `.psc-vt-state-${s} {\n  color: var(${tokenVar(tok)});\n  fill: var(${tokenVar(tok)});\n}`;
@@ -572,8 +576,9 @@ export function exportPerspectiveThemeCss(
     mime: "text/css",
     content:
       `/* Visual Toolkit — ${cssComment(theme.name)} theme tokens for Ignition Perspective.\n` +
-      " * UNVERIFIED on a gateway. Paste into your project's Advanced Stylesheet\n" +
-      " * (Perspective > Styles > stylesheet.css). Colour meaning: state.* tokens are for\n" +
+      " * Tested on Ignition 8.3.9; 8.1 unverified. Paste into your project's Advanced\n" +
+      " * Stylesheet (Perspective > Styles > stylesheet.css). Image components can't see\n" +
+      " * these variables. Colour meaning: state.* tokens are for\n" +
       " * operational state only; do not map brand colours onto them. */\n" +
       `${selector} {\n${vars.join("\n")}\n}\n` +
       helpers,

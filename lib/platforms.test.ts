@@ -222,7 +222,7 @@ describe("Perspective theme CSS", () => {
   it("maps every --vt-* token into :root and adds .psc- helpers", () => {
     const f = exportPerspectiveThemeCss("dark");
     expect(f.filename).toBe("dark.perspective.css");
-    expect(f.content).toMatch(/^\/\*[\s\S]*UNVERIFIED/);
+    expect(f.content).toMatch(/^\/\*[\s\S]*Tested on Ignition 8.3.9; 8.1 unverified/);
     for (const [k, v] of Object.entries(darkTheme.tokens)) expect(f.content).toContain(`--vt-${k.replace(/\./g, "-")}: ${v};`);
     expect(f.content).toContain(".psc-vt-state-fault");
     expect(f.content.match(/\{/g)!.length).toBe(f.content.match(/\}/g)!.length);

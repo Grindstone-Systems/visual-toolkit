@@ -2,19 +2,19 @@
 
 Visual Toolkit creates the asset, and Ignition makes it operational. Ignition owns tags, bindings, alarming, navigation, security and events. These exports are visual content only.
 
-> **Validation status (2026-09-30):** levels A, A+, B and C (2026-09-29) and the scene sample project (2026-09-30) were tested on a fresh **Ignition 8.3.9** gateway (Docker, standard edition trial, Perspective session in headless Chrome). Results are below, with what failed. Nothing has been tested on 8.1 or in the Designer GUI, and those items stay *unverified*.
+> **Validation status (2026-09-30):** levels A, A+, B and C (2026-09-29), and the scene sample project, theme stylesheet and mono icons (2026-09-30), were tested on a fresh **Ignition 8.3.9** gateway (Docker, standard edition trial, Perspective session in headless Chrome). Results are below, with what failed. Nothing has been tested on 8.1 or in the Designer GUI, and those items stay *unverified*.
 
 | Level | Export (`lib/`) | Workflow | Status on 8.3.9 |
 | --- | --- | --- | --- |
 | **A · Universal SVG** | `exportSvg` (**Download SVG**) | Image `props.source`: gateway image, data URI or WebDev python resource | **Verified**, CSS animation runs. WebDev *mounted folders* fail (wrong MIME type) |
 | **A+ · State set** | `exportIgnitionKit` → `states/*.svg` | Bind the Image `source` to an expression over a status tag | **Verified**, swaps live as the tag changes |
-| **B · Icon repository** | `exportIconRepository`, `exportIconRepositoryKit` | 8.3 config-resource folder; reference icons as `<library>/<id>` | **Verified** (colour variant, 8.3 layout). 8.1 folder not read on a fresh 8.3; mono + `color` untested |
+| **B · Icon repository** | `exportIconRepository`, `exportIconRepositoryKit` | 8.3 config-resource folder; reference icons as `<library>/<id>` | **Verified** (colour and mono, 8.3 layout). Mono follows `props.style.color` or a style class, **not** `props.color`. 8.1 folder not read on a fresh 8.3 |
 | **C · Drawing** | `exportPerspectiveDrawingSvg` | Drawing `props.elements`; bind `elements[n].fill.paint` | **Verified** through a script-converted `elements` array. Designer drag-and-drop *not tested*. Animation is lost |
 | **D · Starter metadata** | `exportIgnitionMetadata` (`*.ignition.json` in the kit) | Suggested state names, region element ids and ports | Built (guidance only) |
 | **Smart SVG** | `exportSmartSvg` | Expression rewrites `data-vt-state` inside a data URI | **Verified** (see below). Inline Frame and Markdown do not work |
 | **Sample project** | `exportIgnitionSampleProject` (Mimics → **Ignition sample project**) | A Perspective project built from a composed scene, plus its memory tags | **Verified** when installed on the file system (see below). Gateway zip import, Designer tag import and 8.1 *unverified* |
 | **E · Spatial** | `spatialGlb` | Dimension Engine module loads `vt.spatial/v0` models | Browser dev build only; not yet on a gateway |
-| **Theme** | `exportPerspectiveThemeCss` | Paste `:root { --vt-* }` into the project's Advanced Stylesheet | Built. *Unverified* |
+| **Theme** | `exportPerspectiveThemeCss` | Paste `:root { --vt-* }` into the project's Advanced Stylesheet | **Verified**: variables reach component styles and inline icons; `.psc-vt-state-*` helpers work. Images can't see them |
 
 | State set bound to a tag | Icon repository | Drawing with a bound fill |
 | --- | --- | --- |
@@ -79,7 +79,7 @@ From [Images and Icons in Perspective (8.1)](https://www.docs.inductiveautomatio
 `exportIconRepository(items, { library, style, theme, variant })` writes one `<library>.svg` in the documented form. It contains one child `<svg viewBox id>` per requested item: a whole family (`iconItemsForStates(vo)` gives all seven states) or several recipes (`iconItemsFromRecipes`). The default ids are `<kind>-<state>`, such as `centrifugal-pump-running`. Colliding ids get `-2`, `-3` and so on. Every id in the file is unique, because clip paths and patterns are namespaced as `<icon>--<name>`.
 
 - `variant: "color"` produces resolved theme colours.
-- `variant: "mono"` produces `currentColor` only, with `fill-opacity` steps so the form still reads in one colour. *Assumption:* the Perspective icon `color` reaches `currentColor`. If it doesn't, use the colour variant.
+- `variant: "mono"` produces `currentColor` only, with `fill-opacity` steps so the form still reads in one colour. Colour it with `props.style.color` or a style class, not `props.color` (see **Icon colour** below).
 
 `exportIconRepositoryKit` zips both variants like this:
 
@@ -97,7 +97,10 @@ README.txt   (install steps and verification status)
 2. In a view, set an Icon's `props.path` to `<library>/<id>`, for example `vt/centrifugal-pump-fault`. Tested with `vt/pump` and `vt/valve`, which rendered in full colour.
 3. **8.1** (*unverified*): copy `ignition-8.1/*.svg` into `data/modules/com.inductiveautomation.perspective/icons/`, then restart the Designer. On a **fresh 8.3** gateway this folder is not read: it returned 404, and the log said that migration failed because `icons.digest.json` was missing. It's only a one-time migration path on upgrade.
 
-**Icon colour:** the Icon's `props.color` has no effect on the colour variant, because VT shapes carry explicit fills. Whether the mono (`currentColor`) variant follows `color` is still untested.
+**Icon colour (tested on 8.3.9, 2026-09-30):**
+- The colour variant ignores `props.color`, because VT shapes carry explicit fills.
+- Perspective applies `props.color` as CSS `fill` on the icon's `<svg>`. The mono variant paints with `currentColor`, so `props.color` does **not** recolour it; it stays the default text grey.
+- To colour a mono icon, set **`props.style.color`**, which you can bind to a state expression. A blue `style.color` turned every stroke and fill blue. Or add a state class from the theme stylesheet (`vt-state-fault` → `.psc-vt-state-fault`), which turned it the fault red.
 
 ## Drawing (C)
 
@@ -109,7 +112,14 @@ The [Drawing component](https://www.docs.inductiveautomation.com/docs/8.3/append
 
 ## Theme stylesheet
 
-`exportPerspectiveThemeCss(theme)` writes `:root { --vt-*: … }` plus optional `.psc-vt-state-<state>` helper classes that set `color`/`fill` from the state token. The Perspective [Styles](https://www.docs.inductiveautomation.com/docs/8.1/ignition-modules/perspective/styles) docs say that **Enable Advanced Stylesheet** creates a `stylesheet.css` that accepts ordinary CSS, and that style classes are injected with a `.psc-` prefix. Whether `:root` variables from that sheet reach every view and inline SVG is *unverified*.
+`exportPerspectiveThemeCss(theme)` writes `:root { --vt-*: … }` plus optional `.psc-vt-state-<state>` helper classes that set `color`/`fill` from the state token. The Perspective [Styles](https://www.docs.inductiveautomation.com/docs/8.1/ignition-modules/perspective/styles) docs say that **Enable Advanced Stylesheet** creates a `stylesheet.css` that accepts ordinary CSS, and that style classes are injected with a `.psc-` prefix.
+
+**Tested on 8.3.9 (2026-09-30):** I placed the export as the project resource `com.inductiveautomation.perspective/stylesheet/stylesheet.css`, with a `resource.json` listing it, and restarted the gateway.
+- `--vt-state-fault` resolved on `:root` in the session.
+- A Label styled `color: var(--vt-state-fault)` and a Label with the style class `vt-state-fault` both rendered the fault red (`#cc2a1c`).
+- A mono Icon with that class turned red too.
+
+Enabling the stylesheet from the Designer should create the same resource, but that step itself was not tested. SVG shown through an **Image** (gateway URL or data URI) is a separate document, so it can't see these variables. Use exported colours there.
 
 ## Sample project from a scene
 
