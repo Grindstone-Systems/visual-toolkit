@@ -5,6 +5,7 @@ import {
   demoScene,
   emptyScene,
   encodeSceneCode,
+  exportIgnitionSampleProject,
   exportSceneKit,
   FAMILIES,
   getGenerator,
@@ -467,6 +468,17 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
               title="A .glb per item, pipes.glb and scene.json with the 3D placements"
             >
               3D scene kit (.zip)
+            </button>
+            <button
+              className="span2"
+              disabled={!scene.items.length}
+              onClick={() => {
+                const kit = exportIgnitionSampleProject(scene, { style, theme, tokens: design.tokens });
+                downloadBlob(new Blob([kit.bytes as BlobPart], { type: "application/zip" }), kit.filename);
+              }}
+              title="A Perspective project with one view bound to memory tags, plus the tags. Tested on Ignition 8.3.9."
+            >
+              Ignition sample project (.zip)
             </button>
           </div>
           <button

@@ -231,6 +231,10 @@ export interface SceneRenderOptions {
   viewBox?: [number, number, number, number];
   /** Editor selection outlines. */
   highlight?: { item?: string; pipe?: string; port?: PipeEnd };
+  /** Draw only these items/pipes (routing still uses the whole scene). Default: everything. */
+  include?: { items?: readonly string[]; pipes?: readonly string[] };
+  /** Paint the canvas rectangle behind the scene. Default true. */
+  background?: boolean;
 }
 
 export function sceneBounds(placed: PlacedItem[], padding = 20): [number, number, number, number] {
@@ -273,7 +277,9 @@ export function renderSceneSvg(scene: Scene, opts: SceneRenderOptions): string {
   const routes = pipeRoutes(scene, placed);
   const animate = opts.animate ?? true;
 
+  const inc = opts.include;
   const pipes = routes
+    .filter(({ pipe }) => !inc?.pipes || inc.pipes.includes(pipe.id))
     .map(({ pipe, points, size, flowing }) => {
       const d = points.map((p, i) => `${i ? "L" : "M"}${p[0]} ${p[1]}`).join("");
       const flow = flowing && animate ? ` class="vt-flow"` : "";
@@ -291,15 +297,14 @@ export function renderSceneSvg(scene: Scene, opts: SceneRenderOptions): string {
     .join("");
 
   const items = placed
+    .filter(({ item }) => !inc?.items || inc.items.includes(item.id))
     .map(({ item, vo, w, h }) => {
       const [, , vw, vh] = vo.viewBox;
       // The label is drawn by the scene so it stays upright when the symbol turns.
       const inner = renderSvg(
         { ...vo, label: undefined },
         { style: opts.style, theme: opts.theme, tokens: opts.tokens, state: item.state, animate, idPrefix: `${prefix}-${item.id}`, embedRecipe: false } as RenderOptions,
-      )
-        .replace(/^<svg /, `<svg x="0" y="0" width="${vw}" height="${vh}" `)
-        .replace(/ width="[\d.]+" height="[\d.]+"( class=)/, "$1");
+      ).replace(/^<svg([^>]*)>/, (_, a: string) => `<svg x="0" y="0" width="${vw}" height="${vh}"${a.replace(/ (width|height)="[^"]*"/g, "")}>`);
       const t: string[] = [`translate(${item.x} ${item.y})`];
       if (item.rotation === 90) t.push(`translate(${w} 0) rotate(90)`);
       if (item.rotation === 180) t.push(`translate(${w} ${h}) rotate(180)`);
@@ -336,7 +341,7 @@ export function renderSceneSvg(scene: Scene, opts: SceneRenderOptions): string {
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" id="${prefix}" class="vt-scene" viewBox="${bx} ${by} ${bw} ${bh}" width="${bw}" height="${bh}" data-vt-scene="${SCENE_SCHEMA}">` +
     css +
-    `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="${tokens["surface.canvas"]}"/>` +
+    (opts.background === false ? "" : `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="${tokens["surface.canvas"]}"/>`) +
     pipes +
     items +
     ports +

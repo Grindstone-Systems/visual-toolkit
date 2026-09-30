@@ -2,7 +2,7 @@
 
 Visual Toolkit creates the asset, and Ignition makes it operational. Ignition owns tags, bindings, alarming, navigation, security and events. These exports are visual content only.
 
-> **Validation status (2026-09-29):** levels A, A+, B and C were tested on a fresh **Ignition 8.3.9** gateway (Docker, standard edition trial, Perspective session in headless Chrome). Results are below, with what failed. Nothing has been tested on 8.1 or in the Designer GUI, and those items stay *unverified*.
+> **Validation status (2026-09-30):** levels A, A+, B and C (2026-09-29) and the scene sample project (2026-09-30) were tested on a fresh **Ignition 8.3.9** gateway (Docker, standard edition trial, Perspective session in headless Chrome). Results are below, with what failed. Nothing has been tested on 8.1 or in the Designer GUI, and those items stay *unverified*.
 
 | Level | Export (`lib/`) | Workflow | Status on 8.3.9 |
 | --- | --- | --- | --- |
@@ -12,6 +12,7 @@ Visual Toolkit creates the asset, and Ignition makes it operational. Ignition ow
 | **C · Drawing** | `exportPerspectiveDrawingSvg` | Drawing `props.elements`; bind `elements[n].fill.paint` | **Verified** through a script-converted `elements` array. Designer drag-and-drop *not tested*. Animation is lost |
 | **D · Starter metadata** | `exportIgnitionMetadata` (`*.ignition.json` in the kit) | Suggested state names, region element ids and ports | Built (guidance only) |
 | **Smart SVG** | `exportSmartSvg` | Expression rewrites `data-vt-state` inside a data URI | **Verified** (see below). Inline Frame and Markdown do not work |
+| **Sample project** | `exportIgnitionSampleProject` (Mimics → **Ignition sample project**) | A Perspective project built from a composed scene, plus its memory tags | **Verified** when installed on the file system (see below). Gateway zip import, Designer tag import and 8.1 *unverified* |
 | **E · Spatial** | `spatialGlb` | Dimension Engine module loads `vt.spatial/v0` models | Browser dev build only; not yet on a gateway |
 | **Theme** | `exportPerspectiveThemeCss` | Paste `:root { --vt-* }` into the project's Advanced Stylesheet | Built. *Unverified* |
 
@@ -109,6 +110,38 @@ The [Drawing component](https://www.docs.inductiveautomation.com/docs/8.3/append
 ## Theme stylesheet
 
 `exportPerspectiveThemeCss(theme)` writes `:root { --vt-*: … }` plus optional `.psc-vt-state-<state>` helper classes that set `color`/`fill` from the state token. The Perspective [Styles](https://www.docs.inductiveautomation.com/docs/8.1/ignition-modules/perspective/styles) docs say that **Enable Advanced Stylesheet** creates a `stylesheet.css` that accepts ordinary CSS, and that style classes are injected with a `.psc-` prefix. Whether `:root` variables from that sheet reach every view and inline SVG is *unverified*.
+
+## Sample project from a scene
+
+In **Mimics → Piping & connections**, **Ignition sample project (.zip)** turns the composed scene into a working Perspective project. `exportIgnitionSampleProject(scene, opts)` does the same in code (sample project v1).
+
+- **One view, `VisualToolkit/<Scene>`**, mapped to the page `/`. Each item is an Image whose `props.source` is a `case()` expression over its tag, choosing one of seven state SVGs held as data URIs in `view.custom.vt.items`. Anything unmapped, including a missing tag, shows *comm-loss*.
+- **Pipes are Images too.** Each one switches to its flowing variant while either end is *running*, the same rule the composer uses.
+- **One String memory tag per item**, `[default]VisualToolkit/<Scene>/<label>/State`, holding a state name. A dropdown per item is bound bidirectionally to it, so the demo runs without a PLC.
+
+```
+README.txt, sample.json                      install steps; item → tag map
+project/VisualToolkit_<Scene>/               copy into data/projects/
+VisualToolkit_<Scene>.zip                    the same project, for Gateway → Projects → Import
+tags/ignition-8.3/tag-definition/default/    copy VisualToolkit/ into data/config/resources/core/ignition/tag-definition/default/
+tags/tags-import.json                        the same tags for the Designer Tag Browser
+```
+
+**Tested on 8.3.9 (2026-09-30)** with the demo transfer skid:
+1. I copied `project/VisualToolkit_TransferSkid/` into `data/projects/` and `VisualToolkit/` into the default provider's `tag-definition` folder, then restarted the gateway. The project started, and the tag files survived the restart. The tag file format is what the gateway itself wrote after a `system.tag.configure` call.
+2. An anonymous session at `/data/perspective/client/VisualToolkit_TransferSkid/` showed the skid in its saved states, with all seven images (four items, three pipes) loaded and the running pipes flowing.
+3. Choosing *Fault* for P-101 and *Normal* for XV-101 in the dropdowns wrote the tags. The pump swapped to its fault symbol, the valve to normal, and every pipe stopped flowing. The values survived a restart.
+4. After I pointed one binding at a missing tag, that item showed *comm-loss*.
+
+| Running (as saved) | P-101 set to Fault from the dropdown |
+| --- | --- |
+| ![sample project, running](ignition-proof/06-sample-running.png) | ![sample project, pump fault](ignition-proof/07-sample-fault.png) |
+
+**Not tested:** importing `VisualToolkit_<Scene>.zip` through the Gateway web UI, importing `tags-import.json` in the Designer, **Scan File System** instead of a restart, and Ignition 8.1.
+
+To drive the view from real equipment, change the tag paths in the Image bindings. Or turn each memory tag into an expression tag that maps your status value to a state name.
+
+This test also turned up a bug in the mimic SVG itself: nested symbols carried their `width`/`height` twice. Browsers accept that inline, but a standalone `.svg` (the mimic download, the scene kit and these data URIs) must be valid XML. It is fixed, and a test now guards it.
 
 ## Other platforms
 
