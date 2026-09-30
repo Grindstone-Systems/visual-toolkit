@@ -13,7 +13,7 @@ Visual Toolkit creates industrial equipment graphics from parameters instead of 
 - Smart SVG
 - An Ignition kit (one SVG per state, starter metadata and a guide), a Perspective icon repository, a Drawing-ready SVG and theme CSS
 - Siemens WinCC Unified and Rockwell FactoryTalk Optix kits (not yet tested on those platforms)
-- Scene exports: mimic SVG, `.vt-scene.json` and a 3D scene kit
+- Scene exports: mimic SVG, `.vt-scene.json`, a 3D scene kit and an **Ignition sample project**: a Perspective view whose equipment and pipes change state with demo memory tags
 - `.vt.json` object files
 - `.glb` 3D models
 
@@ -23,7 +23,7 @@ A design is a recipe of about 150 characters. The address bar is always a share 
 
 ## Where it fits
 
-Visual Toolkit creates assets. It does not replace Ignition's Symbol Factory or Perspective Symbols, and it owns no tags, bindings or alarming. On an Ignition 8.3.9 gateway, images, tag-driven state sets, the icon repository and the Drawing component were verified. The guide lists what failed and what is untested.
+Visual Toolkit creates assets. It does not replace Ignition's Symbol Factory or Perspective Symbols, and it owns no alarming. Wiring to real equipment stays in Ignition. The sample project's memory tags are only for the demo. On an Ignition 8.3.9 gateway, images, tag-driven state sets, the icon repository (colour and mono), the Drawing component, the theme stylesheet and the sample project (installed on the file system) were verified. The guide lists what failed and what is untested.
 
 ## Good to know
 

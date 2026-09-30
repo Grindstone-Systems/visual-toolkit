@@ -113,9 +113,9 @@ requirements:
     kind: software
     cost: optional-paid
     notes: Optional destination for exported assets. SVG images, tag-driven state
-      sets, the icon repository and the Drawing component were verified on an
-      Ignition 8.3.9 gateway. 8.1 and the Designer's drag-and-drop import are
-      untested.
+      sets, the icon repository, the Drawing component, the theme stylesheet and
+      the scene sample project were verified on an Ignition 8.3.9 gateway. 8.1,
+      the gateway's project-zip import and the Designer's imports are untested.
 actions:
   - id: builder
     type: demo
@@ -171,9 +171,11 @@ faq:
       metadata for states, levels and cutaways travels in the file's extras.
   - question: Has the Ignition workflow been tested?
     answer: Partly. On a fresh Ignition 8.3.9 gateway, SVG images, state sets
-      swapped by a tag expression, the icon repository and a Drawing with a
-      tag-bound fill all worked. The guide lists what failed and what is still
-      untested, including 8.1 and the Designer's drag-and-drop import.
+      swapped by a tag expression, the icon repository, a Drawing with a
+      tag-bound fill and the theme stylesheet all worked. So did the sample
+      project from the skid composer, copied onto the gateway's file system.
+      The guide lists what failed and what is still untested, including 8.1,
+      the gateway's project-zip import and the Designer's imports.
 lifecycle:
   stage: preview
   maintenance: active
