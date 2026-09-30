@@ -21,3 +21,9 @@ jobs:
       - run: pnpm gallery:check
       - run: pnpm build
       - run: pnpm build:lib
+  oic-profile:
+    # The listing, checked with OIC's own importer and Charter preflight.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: open-industrial-collective/website/profile-check@main

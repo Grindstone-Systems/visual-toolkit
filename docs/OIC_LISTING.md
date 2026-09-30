@@ -15,7 +15,10 @@ Visual Toolkit is listed at https://openindustrialcollective.org/projects/visual
 ```bash
 pnpm oic:media           # regenerate all six screenshots (starts Vite, drives your Chrome)
 pnpm oic:media hero      # or only shots whose name matches
+pnpm oic:check           # check the profile with OIC's importer and Charter preflight
 ```
+
+`oic:check` runs OIC's own profile check, the importer and Charter preflight a reviewer runs, from a cached clone of the public website repo (or the checkout in `OIC_WEBSITE`). `pnpm oic:check --ref HEAD` checks exactly what OIC would import, and its digest matches the reviewer's `fetch`. CI runs the same check through the `open-industrial-collective/website/profile-check` Action. A clean check is not an approval.
 
 Edit `.oic/project.yaml` and `.oic/overview.md` as needed. Keep claims accurate:
 - Label composed scenes as composed.

@@ -43,7 +43,8 @@
     "gallery:check": "tsx scripts/check-gallery.ts",
     "render:examples": "tsx scripts/render-examples.ts",
     "check": "pnpm typecheck && pnpm test && pnpm gallery:check && pnpm build && pnpm build:lib",
-    "oic:media": "tsx scripts/oic-media.ts"
+    "oic:media": "tsx scripts/oic-media.ts",
+    "oic:check": "tsx scripts/oic-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
