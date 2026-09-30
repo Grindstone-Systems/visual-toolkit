@@ -57,3 +57,5 @@ A **generator** turns parameters into a **Visual Toolkit object**: geometry spli
 ## License
 
 The code is Apache-2.0. Gallery entries are CC0-1.0. SVGs you export are yours.
+
+For vulnerabilities and industrial-use limits, see [Security and industrial use](SECURITY.md). Visual Toolkit creates assets; a plant's authorized team must validate any host integration before production use.
