@@ -1,6 +1,24 @@
 import * as THREE from "three/webgpu";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { color as tslColor, fract, frontFacing, materialColor, mix, positionWorld, select, smoothstep, vec3 } from "three/tsl";
+import {
+  color as tslColor,
+  cos,
+  faceDirection,
+  fract,
+  frontFacing,
+  materialColor,
+  mix,
+  normalLocal,
+  positionWorld,
+  select,
+  sin,
+  smoothstep,
+  step,
+  time,
+  transformNormalToView,
+  uniform,
+  vec3,
+} from "three/tsl";
 import { readGlbJson, type BadgeKind, type StateName } from "../../../lib/index.ts";
 
 /**
@@ -48,6 +66,8 @@ export async function loadVtModel(glb: Uint8Array): Promise<VtModel> {
   // three clips the negative side; the contract's normal points at the removed side.
   const plane = sp ? new THREE.Plane(new THREE.Vector3(...sp.normal).negate(), sp.offset) : null;
   let current: StateName = "normal";
+  // Liquid ripples run while motion is on (reduced motion freezes them).
+  const motionScale = uniform(1);
 
   /** glTF gives MeshStandardMaterial; node materials let us hatch section faces. */
   const toNodeMaterial = (m: THREE.MeshStandardMaterial, section: boolean, role: string) => {
@@ -60,6 +80,19 @@ export async function loadVtModel(glb: Uint8Array): Promise<VtModel> {
       opacity: m.opacity,
       transparent: m.transparent,
     });
+    if (role === "fill") {
+      // Liquid surface: tilt the normals of up-facing faces with slow crossing
+      // waves, so highlights ripple across the top without moving geometry.
+      const up = step(0.9, normalLocal.y);
+      const t = time.mul(motionScale);
+      const wave = vec3(
+        sin(positionWorld.x.mul(38).add(t.mul(2.1))).add(sin(positionWorld.z.mul(23).sub(t.mul(1.3)))),
+        0,
+        cos(positionWorld.z.mul(34).add(t.mul(1.7))).add(cos(positionWorld.x.mul(19).add(t.mul(0.9)))),
+      ).mul(0.17).mul(up);
+      // Keep three's back-face flip (cutaway shows the liquid's inside faces).
+      nm.normalNode = transformNormalToView(normalLocal.add(wave).normalize()).mul(faceDirection);
+    }
     if (section) {
       // Inside surfaces revealed by the cut: a dark interior, with a CAD-style
       // orange hatched band right at the cut edge (near the section plane).
@@ -178,6 +211,7 @@ export async function loadVtModel(glb: Uint8Array): Promise<VtModel> {
     },
     update(dt, elapsed, motion) {
       mixer.update(dt);
+      motionScale.value = motion ? 1 : 0;
       if (Math.abs(explode - explodeTarget) > 1e-4) {
         explode += (explodeTarget - explode) * Math.min(1, dt * 6);
         const e = explode * explode * (3 - 2 * explode);
