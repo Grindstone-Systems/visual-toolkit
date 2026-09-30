@@ -43,7 +43,7 @@ const shots: Shot[] = [
   { name: "builder-3d", path: "/", clicks: ["Open Symbols builder", "3D", "Cutaway"], settle: 4000 },
   { name: "all-states", path: "/", clicks: ["Open Symbols builder", "Switch to dark theme", "Pump", "All states"] },
   { name: "live-smart-svg", path: "/", clicks: ["Open Symbols builder", "Tank", "Live"], settle: 5200 },
-  { name: "skid-composer-3d", path: "/#/mimics", clicks: ["Demo skid", "3D layout", "Night"], settle: 6000 },
+  { name: "skid-composer-3d", path: "/#/skids", clicks: ["Demo", "3D", "Night"], settle: 6000 },
 ];
 
 async function clickByLabel(page: Page, label: string) {

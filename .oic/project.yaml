@@ -28,9 +28,9 @@ media:
   - id: skid-composer-3d
     type: image
     src: ./media/skid-composer-3d.jpg
-    title: Skid composer in 3D
-    alt: The Visual Toolkit skid composer showing a tank, two control valves and a pump set on a dark grid, joined by swept pipes with glowing flow tracers and tag labels, next to an HMI review checklist.
-    caption: Mimics → Piping & connections · One scene, shown as a 2D mimic or this 3D layout, rendered live in the app
+    title: A skid in 3D
+    alt: The Visual Toolkit Skids page in 3D, showing a tank, two control valves and a pump set on a dark grid, joined by swept pipes with glowing flow tracers and tag labels, next to a short HMI review and the export buttons.
+    caption: Skids · One skid, shown in 2D or in this 3D view, rendered live in the app
     credit: Grindstone Systems
     rights: Provided for display, resizing and caching in the OIC project listing.
   - id: plant-floor
@@ -131,9 +131,9 @@ actions:
     label: Browse the gallery
   - id: composer
     type: demo
-    url: https://grindstone-systems.github.io/visual-toolkit/#/mimics
+    url: https://grindstone-systems.github.io/visual-toolkit/#/skids
     primary: false
-    label: Try the skid composer
+    label: Build a skid
   - id: docs
     type: docs
     url: https://github.com/Grindstone-Systems/visual-toolkit#readme

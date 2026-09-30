@@ -9,7 +9,7 @@ import { Shell, type Command } from "./shell/Shell.tsx";
 import { ALL_PAGES, groupOf, hrefOf, pageById, parseHash, type PageId, type Route } from "./shell/tools.ts";
 import { Builder, type StageView } from "./symbols/Builder.tsx";
 import { GalleryPage } from "./symbols/GalleryPage.tsx";
-import { MimicsPage } from "./mimics/MimicsPage.tsx";
+import { SkidsPage } from "./skids/SkidsPage.tsx";
 import { Icon } from "./ui/icons.tsx";
 
 export function App() {
@@ -130,8 +130,8 @@ export function App() {
     case "themes.editor":
       content = <ThemeEditor design={design} setDesign={setDesign} openBuilder={() => navigate("symbols.builder")} />;
       break;
-    case "mimics.piping":
-      content = <MimicsPage design={design} code={route.scene} notify={notify} />;
+    case "skids":
+      content = <SkidsPage design={design} code={route.scene} notify={notify} />;
       break;
     case "spatial.models":
       content = (

@@ -12,7 +12,7 @@ Visual Toolkit creates the asset, and Ignition makes it operational. Ignition ow
 | **C · Drawing** | `exportPerspectiveDrawingSvg` | Drawing `props.elements`; bind `elements[n].fill.paint` | **Verified** through a script-converted `elements` array. Designer drag-and-drop *not tested*. Animation is lost |
 | **D · Starter metadata** | `exportIgnitionMetadata` (`*.ignition.json` in the kit) | Suggested state names, region element ids and ports | Built (guidance only) |
 | **Smart SVG** | `exportSmartSvg` | Expression rewrites `data-vt-state` inside a data URI | **Verified** (see below). Inline Frame and Markdown do not work |
-| **Sample project** | `exportIgnitionSampleProject` (Mimics → **Ignition sample project**) | A Perspective project built from a composed scene, plus its memory tags | **Verified** when installed on the file system (see below). Gateway zip import, Designer tag import and 8.1 *unverified* |
+| **Sample project** | `exportIgnitionSampleProject` (Skids → Export → **Ignition project**) | A Perspective project built from a composed scene, plus its memory tags | **Verified** when installed on the file system (see below). Gateway zip import, Designer tag import and 8.1 *unverified* |
 | **E · Spatial** | `spatialGlb` | Dimension Engine module loads `vt.spatial/v0` models | Browser dev build only; not yet on a gateway |
 | **Theme** | `exportPerspectiveThemeCss` | Paste `:root { --vt-* }` into the project's Advanced Stylesheet | **Verified**: variables reach component styles and inline icons; `.psc-vt-state-*` helpers work. Images can't see them |
 
@@ -123,7 +123,7 @@ Enabling the stylesheet from the Designer should create the same resource, but t
 
 ## Sample project from a scene
 
-In **Mimics → Piping & connections**, **Ignition sample project (.zip)** turns the composed scene into a working Perspective project. `exportIgnitionSampleProject(scene, opts)` does the same in code (sample project v1).
+In **Skids**, **Export → Ignition project** turns the skid into a working Perspective project. `exportIgnitionSampleProject(scene, opts)` does the same in code (sample project v1).
 
 - **One view, `VisualToolkit/<Scene>`**, mapped to the page `/`. Each item is an Image whose `props.source` is a `case()` expression over its tag, choosing one of seven state SVGs held as data URIs in `view.custom.vt.items`. Anything unmapped, including a missing tag, shows *comm-loss*.
 - **Pipes are Images too.** Each one switches to its flowing variant while either end is *running*, the same rule the composer uses.
@@ -151,7 +151,7 @@ tags/tags-import.json                        the same tags for the Designer Tag 
 
 To drive the view from real equipment, change the tag paths in the Image bindings. Or turn each memory tag into an expression tag that maps your status value to a state name.
 
-This test also turned up a bug in the mimic SVG itself: nested symbols carried their `width`/`height` twice. Browsers accept that inline, but a standalone `.svg` (the mimic download, the scene kit and these data URIs) must be valid XML. It is fixed, and a test now guards it.
+This test also turned up a bug in the skid SVG itself: nested symbols carried their `width`/`height` twice. Browsers accept that inline, but a standalone `.svg` (the skid download, the scene kit and these data URIs) must be valid XML. It is fixed, and a test now guards it.
 
 ## Other platforms
 

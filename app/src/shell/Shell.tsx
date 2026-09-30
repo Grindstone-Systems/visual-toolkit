@@ -91,7 +91,7 @@ export function Shell({
           <span className="brand-name">Visual Toolkit</span>
         </a>
         <nav className="crumbs" aria-label="Breadcrumb">
-          {group && <span>{group.label}</span>}
+          {group && group.pages.length > 1 && <span>{group.label}</span>}
           <span aria-current="page">{current.label}</span>
           {crumb && <span className="crumb-extra">{crumb}</span>}
         </nav>
@@ -114,6 +114,11 @@ export function Shell({
         <nav className="nav-scroll">
           <NavLink page={OVERVIEW} active={page === "overview"} onGo={go} />
           {GROUPS.map((g) => {
+            // A group with one page is just a link.
+            if (g.pages.length === 1) {
+              const p = g.pages[0]!;
+              return <NavLink key={g.id} page={p} active={page === p.id} onGo={go} count={counts[p.id]} />;
+            }
             const open = !closedGroups.includes(g.id);
             const inGroup = g.pages.some((p) => p.id === page);
             return (

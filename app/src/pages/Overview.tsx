@@ -10,7 +10,7 @@ export function Overview({ design, navigate, openFamily }: { design: Design; nav
     const g = f.generator ? getGenerator(f.generator) : undefined;
     return g ? [{ name: f.name, gen: g }] : [];
   });
-  const tools = GROUPS.flatMap((g) => g.pages.map((p) => ({ ...p, group: g.label })));
+  const tools = GROUPS.flatMap((g) => g.pages.map((p) => ({ ...p, group: g.pages.length > 1 ? g.label : "" })));
 
   return (
     <div className="page overview">
@@ -18,8 +18,8 @@ export function Overview({ design, navigate, openFamily }: { design: Design; nav
         <p className="eyebrow">Grindstone Systems</p>
         <h1>Open visual tools for industrial software</h1>
         <p className="lede">
-          Create state-aware, themable assets your platform can use — from clean SVG symbols today to smart mimics and spatial
-          objects tomorrow. Everything runs in your browser: no account, no server.
+          Build state-aware industrial symbols, connect them into skids, and take them to SVG, 3D or Ignition. Everything runs
+          in your browser: no account, no server.
         </p>
         <div className="hero-actions">
           <button className="primary" onClick={() => navigate("symbols.builder")}>

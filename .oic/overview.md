@@ -5,7 +5,7 @@ Visual Toolkit creates industrial equipment graphics from parameters instead of 
 - **2D symbols** in three styles (modern, high-performance, outline) and light or dark themes. Every abnormal state has a shape-coded badge, so status never depends on colour alone.
 - **Smart SVGs.** One file holds every state. A host page switches it by setting `data-vt-state`, and a tank's level follows `--vt-level`. No runtime library is needed.
 - **Stylised 3D models** from the same parameters, exported as standard glTF (`.glb`) with the same part names and states. The 3D view has cutaways, an exploded view, moving product, rippling liquid, and Studio, Plant floor and Night environments.
-- **Skids and mimics.** Place equipment, connect ports, and pipes route themselves. The same scene shows as a 2D mimic or a 3D layout with flowing pipes, and a built-in HMI review checks shape coding, contrast, motion, tags and layout.
+- **Skids.** Place equipment, connect ports, and pipes route themselves. The same skid shows in 2D or in 3D with flowing pipes, and a built-in HMI review checks shape coding, contrast, motion, tags and layout.
 
 ## Exports
 
@@ -13,7 +13,7 @@ Visual Toolkit creates industrial equipment graphics from parameters instead of 
 - Smart SVG
 - An Ignition kit (one SVG per state, starter metadata and a guide), a Perspective icon repository, a Drawing-ready SVG and theme CSS
 - Siemens WinCC Unified and Rockwell FactoryTalk Optix kits (not yet tested on those platforms)
-- Scene exports: mimic SVG, `.vt-scene.json`, a 3D scene kit and an **Ignition sample project**: a Perspective view whose equipment and pipes change state with demo memory tags
+- Skid exports: SVG, PNG, `.vt-scene.json`, a 3D scene kit and an **Ignition project**: a Perspective view whose equipment and pipes change state with demo memory tags
 - `.vt.json` object files
 - `.glb` 3D models
 

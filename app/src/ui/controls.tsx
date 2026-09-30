@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
-export function Section({ step, title, aside, children }: { step: string; title: string; aside?: string; children: ReactNode }) {
+export function Section({ step, title, aside, children }: { step?: string; title: string; aside?: string; children: ReactNode }) {
   return (
     <section className="section">
       <h2>
-        <b>{step}</b> {title}
+        {step && <b>{step}</b>} {title}
         {aside && <span className="aside">{aside}</span>}
       </h2>
       {children}

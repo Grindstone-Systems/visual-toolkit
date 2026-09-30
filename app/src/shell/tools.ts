@@ -6,7 +6,7 @@ import type { IconName } from "../ui/icons.tsx";
  * Statuses mirror docs/ROADMAP.md — don't mark something ready that isn't.
  */
 
-export type PageId = "overview" | "symbols.builder" | "symbols.gallery" | "themes.editor" | "mimics.piping" | "faceplates.builder" | "spatial.models";
+export type PageId = "overview" | "symbols.builder" | "symbols.gallery" | "themes.editor" | "skids" | "faceplates.builder" | "spatial.models";
 
 export type ToolStatus = "ready" | "preview" | "planned";
 
@@ -70,7 +70,7 @@ export const GROUPS: ToolGroup[] = [
     pages: [
       {
         id: "themes.editor",
-        label: "Theme editor",
+        label: "Themes",
         path: "themes",
         icon: "themes",
         status: "ready",
@@ -79,23 +79,17 @@ export const GROUPS: ToolGroup[] = [
     ],
   },
   {
-    id: "mimics",
-    label: "Mimics",
-    icon: "mimics",
+    id: "skids",
+    label: "Skids",
+    icon: "skids",
     pages: [
       {
-        id: "mimics.piping",
-        label: "Piping & connections",
-        path: "mimics",
-        icon: "mimics",
+        id: "skids",
+        label: "Skids",
+        path: "skids",
+        icon: "skids",
         status: "ready",
-        summary: "Place equipment, connect ports with pipes, and see the same skid as a 2D mimic and a 3D layout.",
-        details: [
-          "Pipes route automatically between the ports every symbol carries: orthogonal in 2D, over a rack or under the equipment in 3D.",
-          "Each item keeps its own state; pipes touching running equipment show flow.",
-          "Export the mimic SVG, the scene as data, or a 3D scene kit, or share the whole layout as a link.",
-        ],
-        progress: "Built: placing, dragging, rotating, mirroring, connecting, per-item state, 2D and 3D views, exports and share links.",
+        summary: "Connect equipment with pipes into a skid, then view it in 2D or 3D and take it to Ignition.",
       },
     ],
   },
@@ -106,7 +100,7 @@ export const GROUPS: ToolGroup[] = [
     pages: [
       {
         id: "faceplates.builder",
-        label: "Faceplate builder",
+        label: "Faceplates",
         path: "faceplates",
         icon: "faceplates",
         status: "planned",
@@ -115,7 +109,7 @@ export const GROUPS: ToolGroup[] = [
           "Start from a symbol and get a matching faceplate layout.",
           "Uses the same seven operating states and theme tokens.",
         ],
-        progress: "Not started. It follows Themes and Mimics on the roadmap.",
+        progress: "Not started. It follows Themes and Skids on the roadmap.",
       },
     ],
   },
@@ -155,7 +149,7 @@ export interface Route {
   code?: string;
   /** Pack URL for the gallery (#/symbols/gallery?pack=<url>). */
   pack?: string;
-  /** Scene share code for the skid composer (#/mimics/s/<code>). */
+  /** Scene share code for the skid composer (#/skids/s/<code>). */
   scene?: string;
 }
 
@@ -167,8 +161,10 @@ export function parseHash(hash = location.hash): Route {
   // Share links stay short and stable: #/d/<code> (docs/SHARING.md).
   const m = h.match(/^(?:symbols\/)?d\/([A-Za-z0-9._-]+)$/);
   if (m) return { page: "symbols.builder", code: m[1] };
-  const sc = h.match(/^mimics\/s\/([A-Za-z0-9._-]+)$/);
-  if (sc) return { page: "mimics.piping", scene: sc[1] };
+  // #/mimics was the skid composer's first address; its share links keep working.
+  const sc = h.match(/^(?:skids|mimics)\/s\/([A-Za-z0-9._-]+)$/);
+  if (sc) return { page: "skids", scene: sc[1] };
+  if (h === "mimics") return { page: "skids" };
   if (h === "gallery") return { page: "symbols.gallery" }; // links from before the platform shell
   return { page: ALL_PAGES.find((p) => p.path === h)?.id ?? "overview" };
 }

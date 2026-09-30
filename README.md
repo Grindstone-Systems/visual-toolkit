@@ -4,7 +4,7 @@
 
 Pick a piece of equipment and shape it. Preview its operating states, switch style and theme, then export clean SVG for Ignition, the web or any HMI that takes SVG. Everything runs in the browser, so there is no account and no server.
 
-> Status: **preview.** Eleven procedural families (pump, valve, motor, tank, conveyor, heat exchanger, blower, compressor, static mixer, instrument, pipe fitting), 3 styles, Light/Dark themes plus a theme editor, and 7 operating states. Every family also builds a stylised 3D model (glTF). The **skid composer** connects equipment with pipes and shows the same scene as a 2D mimic or a 3D layout. Exports: SVG, smart SVG, PNG, Ignition kit and icon repository, WinCC Unified and Optix kits, `.glb`, and scene kits. Sharing works through links, files, packs and a pull-request gallery.
+> Status: **preview.** Eleven procedural families (pump, valve, motor, tank, conveyor, heat exchanger, blower, compressor, static mixer, instrument, pipe fitting), 3 styles, Light/Dark themes plus a theme editor, and 7 operating states. Every family also builds a stylised 3D model (glTF). The **skid composer** connects equipment with pipes and shows the same skid in 2D or 3D, and exports it as an Ignition project. Exports: SVG, smart SVG, PNG, Ignition kit and icon repository, WinCC Unified and Optix kits, `.glb`, and scene kits. Sharing works through links, files, packs and a pull-request gallery.
 
 ## Quick start
 

@@ -49,7 +49,7 @@ const readStored = (): Scene | null => {
   }
 };
 
-export const sceneLink = async (scene: Scene) => `${location.origin}${location.pathname}#/mimics/s/${await encodeSceneCode(scene)}`;
+export const sceneLink = async (scene: Scene) => `${location.origin}${location.pathname}#/skids/s/${await encodeSceneCode(scene)}`;
 
 /** A fresh tag for a new item: the generator's default label with the next free number. */
 function freshLabel(scene: Scene, base: string): string {
@@ -61,7 +61,7 @@ function freshLabel(scene: Scene, base: string): string {
   return `${m[1]}${n}`;
 }
 
-export function MimicsPage({ design, code, notify }: { design: Design; code?: string; notify: (m: string) => void }) {
+export function SkidsPage({ design, code, notify }: { design: Design; code?: string; notify: (m: string) => void }) {
   const [scene, setScene] = useState<Scene>(() => readStored() ?? demoScene());
   const [sel, setSel] = useState<Selection>(null);
   const [pending, setPending] = useState<PipeEnd | null>(null);
@@ -107,7 +107,7 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
         tokens: design.tokens,
         animate,
         showPorts: true,
-        idPrefix: "mimic",
+        idPrefix: "skid",
         viewBox: frozen ?? bounds,
         highlight: { item: sel?.kind === "item" ? sel.id : undefined, pipe: sel?.kind === "pipe" ? sel.id : undefined, port: pending ?? undefined },
       }),
@@ -266,15 +266,20 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
   };
 
   const review = useMemo(() => reviewScene(scene, { style, theme, tokens: design.tokens }), [scene, style, theme, design.tokens]);
+  // Things worth a look first; passes fold into one line.
+  const notes = [...review.filter((f) => f.level === "warn"), ...review.filter((f) => f.level === "info")];
+  const passed = review.filter((f) => f.level === "pass");
   const warnings = review.filter((f) => f.level === "warn").length;
 
   const gen = item ? getGenerator(item.generator, item.version) ?? getGenerator(item.generator) : undefined;
   const hasPorts = scene.items.length > 1;
+  const tagOf = (id: string) => String(scene.items.find((i) => i.id === id)?.params.label || id);
+  const download = (bytes: Uint8Array, filename: string) => downloadBlob(new Blob([bytes as BlobPart], { type: "application/zip" }), filename);
 
   return (
-    <div className="builder mimics">
+    <div className="builder skids">
       <aside className="panel left" aria-label="Equipment">
-        <Section step="1" title="Add equipment" aside="click to place">
+        <Section title="Equipment">
           <div className="families">
             {FAMILIES.map((f) => {
               const g = f.generator ? getGenerator(f.generator) : undefined;
@@ -287,41 +292,47 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
             })}
           </div>
         </Section>
-        <Section step="2" title="Scene">
+        <Section title="Skid">
           <label className="field">
-            <span>Name</span>
-            <input type="text" value={scene.name ?? ""} placeholder="Untitled scene" onChange={(e) => setScene((s) => ({ ...s, name: e.target.value || undefined }))} />
+            <input
+              type="text"
+              aria-label="Skid name"
+              value={scene.name ?? ""}
+              placeholder="Untitled skid"
+              onChange={(e) => setScene((s) => ({ ...s, name: e.target.value || undefined }))}
+            />
           </label>
           <Segmented
             value={style}
             options={[
-              { value: "high-performance", label: "HP" },
+              { value: "high-performance", label: "HP", title: "High-performance: colour only for abnormal states" },
               { value: "modern-flat", label: "Flat" },
               { value: "outline", label: "Outline" },
             ]}
             onChange={(v) => setScene((s) => ({ ...s, style: v }))}
           />
-          <div className="grid2">
-            <button onClick={() => (setScene(demoScene()), setSel(null))}>Demo skid</button>
-            <button onClick={() => (setScene({ ...emptyScene(), style: scene.style, theme: scene.theme }), setSel(null))}>New</button>
-            <button className="span2" onClick={() => fileRef.current?.click()}>
-              Open .vt-scene.json
+          <div className="grid3">
+            <button onClick={() => (setScene({ ...emptyScene(), style: scene.style, theme: scene.theme }), setSel(null))} title="Start an empty skid">
+              New
             </button>
-            <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={(e) => e.target.files?.[0] && void openFile(e.target.files[0])} />
+            <button onClick={() => (setScene(demoScene()), setSel(null))} title="Load the demo transfer skid">
+              Demo
+            </button>
+            <button onClick={() => fileRef.current?.click()} title="Open a .vt-scene.json file">
+              Open…
+            </button>
           </div>
-          <p className="hint">
-            {scene.items.length} items · {scene.pipes.length} pipes. Saved on this device.
-          </p>
+          <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={(e) => e.target.files?.[0] && void openFile(e.target.files[0])} />
         </Section>
       </aside>
 
-      <section className="stage" aria-label="Scene">
+      <section className="stage" aria-label="Skid">
         <div className="stage-tools">
           <Segmented
             value={view}
             options={[
-              { value: "2d", label: "2D mimic" },
-              { value: "3d", label: "3D layout", title: "The same scene with each item's 3D model and swept pipes" },
+              { value: "2d", label: "2D" },
+              { value: "3d", label: "3D", title: "Each item's 3D model with swept pipes" },
             ]}
             onChange={setView}
           />
@@ -333,7 +344,7 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
         </div>
         {view === "2d" ? (
           <div
-            className={`mimic-canvas${pending ? " connecting" : ""}`}
+            className={`skid-canvas${pending ? " connecting" : ""}`}
             ref={host}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -346,20 +357,20 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
             <Scene3D scene={scene} style={style} theme={theme} tokens={design.tokens} motion={animate} />
           </Suspense>
         )}
-        <p className="mimic-hint">
+        <p className="skid-hint">
           {view === "3d"
-            ? "Pipes glow with flow wherever they touch running equipment. Edit the layout in 2D."
+            ? "Edit the layout in 2D."
             : pending
-              ? `Connecting from ${pending.item} · ${pending.port}. Click another port, or Esc to cancel.`
+              ? `Connecting ${tagOf(pending.item)} ${pending.port}. Click another port, or Esc to cancel.`
               : hasPorts
-                ? "Drag to move · click a port, then another, to connect · R rotates · M mirrors · Delete removes"
-                : "Add equipment from the left, then connect ports to route pipes."}
+                ? "Drag to move · click two ports to connect · R rotate · M mirror · Delete"
+                : "Add equipment, then click two ports to connect them."}
         </p>
       </section>
 
       <aside className="panel right" aria-label="Selection and export">
         {item && gen ? (
-          <Section step="3" title="Selected" aside={item.id}>
+          <Section title={tagOf(item.id)} aside={gen.name}>
             <div className="state-chips vertical">
               {STATES.map((s) => (
                 <button
@@ -388,8 +399,8 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
                 Delete
               </button>
             </div>
-            <details className="more-exports" open>
-              <summary>{gen.name} parameters</summary>
+            <details className="more-exports">
+              <summary>Parameters</summary>
               <div className="section" style={{ borderBottom: 0, paddingTop: 4 }}>
                 {gen.params.map((d) => (
                   <ParamControl
@@ -401,47 +412,56 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
                 ))}
               </div>
             </details>
-            <p className="hint">Changing parameters can move ports; connected pipes re-route automatically.</p>
           </Section>
         ) : pipe ? (
-          <Section step="3" title="Selected pipe" aside={pipe.id}>
+          <Section title="Pipe">
             <p className="hint">
-              {pipe.from.item} · {pipe.from.port} → {pipe.to.item} · {pipe.to.port}
+              {tagOf(pipe.from.item)} {pipe.from.port} → {tagOf(pipe.to.item)} {pipe.to.port}
             </p>
             <button onClick={removeSelection}>Delete pipe</button>
           </Section>
-        ) : (
-          <Section step="3" title="Selected">
-            <p className="hint">Click an item to set its state, rotate, mirror or change its parameters. Click a pipe to delete it.</p>
-          </Section>
-        )}
+        ) : null}
 
-        <Section step="4" title="HMI review" aside={warnings ? `${warnings} to look at` : "looks good"}>
-          <ul className="review">
-            {review.map((f) => (
-              <li key={f.id} className={`review-${f.level}`}>
-                <button
-                  type="button"
-                  className="review-row"
-                  disabled={!f.items?.length}
-                  onClick={() => f.items?.[0] && (setView("2d"), setSel({ kind: "item", id: f.items[0] }))}
-                  title={f.items?.length ? "Select the first item this is about" : undefined}
-                >
-                  <i aria-hidden="true">{f.level === "pass" ? "✓" : f.level === "warn" ? "!" : "i"}</i>
-                  <span>
-                    <b>{f.title}</b>
-                    {f.detail}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          <p className="hint">A design aid based on high-performance HMI practice, not a compliance check.</p>
+        <Section title="Review" aside={warnings ? `${warnings} to fix` : notes.length ? `${notes.length} notes` : "all good"}>
+          {notes.length > 0 && (
+            <ul className="review">
+              {notes.map((f) => (
+                <li key={f.id} className={`review-${f.level}`}>
+                  <button
+                    type="button"
+                    className="review-row"
+                    disabled={!f.items?.length}
+                    onClick={() => f.items?.[0] && (setView("2d"), setSel({ kind: "item", id: f.items[0] }))}
+                    title={f.level === "warn" ? undefined : f.detail}
+                  >
+                    <i aria-hidden="true">{f.level === "warn" ? "!" : "i"}</i>
+                    <span>
+                      <b>{f.title}</b>
+                      {f.level === "warn" && f.detail}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {passed.length > 0 && (
+            <details className="review-passed">
+              <summary>
+                <i aria-hidden="true">✓</i> {passed.length} {passed.length === 1 ? "check" : "checks"} passed
+              </summary>
+              <ul>
+                {passed.map((f) => (
+                  <li key={f.id}>{f.title}</li>
+                ))}
+              </ul>
+              <p className="hint">A design aid based on high-performance HMI practice, not a compliance check.</p>
+            </details>
+          )}
         </Section>
 
-        <Section step="5" title="Export">
+        <Section title="Export">
           <button className="primary" onClick={() => downloadBlob(new Blob([staticSvg()], { type: "image/svg+xml" }), `${base}.svg`)}>
-            <Icon name="download" /> Download mimic SVG
+            <Icon name="download" /> Download SVG
           </button>
           <div className="grid2">
             <button
@@ -454,31 +474,29 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
             </button>
             <button
               onClick={() => downloadBlob(new Blob([JSON.stringify({ ...scene, schema: SCENE_SCHEMA }, null, 2)], { type: "application/json" }), `${base}.vt-scene.json`)}
-              title="The scene as data (vt.scene/v0)"
+              title="The skid as data (.vt-scene.json). Open it here again later."
             >
-              .vt-scene.json
+              Skid file
             </button>
             <button
-              className="span2"
               disabled={!scene.items.length}
               onClick={() => {
                 const kit = exportSceneKit(scene, { style, theme, tokens: design.tokens });
-                downloadBlob(new Blob([kit.bytes as BlobPart], { type: "application/zip" }), kit.filename);
+                download(kit.bytes, kit.filename);
               }}
               title="A .glb per item, pipes.glb and scene.json with the 3D placements"
             >
-              3D scene kit (.zip)
+              3D kit
             </button>
             <button
-              className="span2"
               disabled={!scene.items.length}
               onClick={() => {
                 const kit = exportIgnitionSampleProject(scene, { style, theme, tokens: design.tokens });
-                downloadBlob(new Blob([kit.bytes as BlobPart], { type: "application/zip" }), kit.filename);
+                download(kit.bytes, kit.filename);
               }}
-              title="A Perspective project with one view bound to memory tags, plus the tags. Tested on Ignition 8.3.9."
+              title="A Perspective project with this skid bound to memory tags, plus the tags. Tested on Ignition 8.3.9."
             >
-              Ignition sample project (.zip)
+              Ignition project
             </button>
           </div>
           <button
@@ -486,12 +504,12 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
               const link = await sceneLink(scene);
               history.replaceState(null, "", link);
               await navigator.clipboard?.writeText(link).catch(() => undefined);
-              notify("Scene link copied. The whole layout is in the link.");
+              notify("Link copied. The whole skid is in the link.");
             }}
+            title="The link carries the whole skid. No server is involved."
           >
             <Icon name="link" /> Copy share link
           </button>
-          <p className="hint">The link carries the whole scene. There's no server, and anyone who opens it gets the same layout.</p>
         </Section>
       </aside>
     </div>
