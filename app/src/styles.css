@@ -359,12 +359,12 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 .grid2 .span2 { grid-column: 1 / -1; }
 
 /* ------------------------------ export / share ------------------------------ */
-.panel.right button:not(.primary):not(.chip), .card-foot button, .mimics .panel.left .grid2 button {
+.panel.right button:not(.primary):not(.chip):not(.review-row), .card-foot button, .mimics .panel.left .grid2 button {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   padding: 8px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--control);
   font-size: 13px; font-weight: 550; white-space: nowrap;
 }
-.panel.right button:not(.primary):not(.chip):hover, .card-foot button:hover:not(:disabled), .mimics .panel.left .grid2 button:hover { border-color: var(--muted); }
+.panel.right button:not(.primary):not(.chip):not(.review-row):hover, .card-foot button:hover:not(:disabled), .mimics .panel.left .grid2 button:hover { border-color: var(--muted); }
 button.primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 11px 14px; border: 0; border-radius: 9px; background: var(--accent); color: var(--on-accent);
@@ -547,3 +547,12 @@ button.primary:hover { filter: brightness(1.12); }
 @media (max-width: 860px) {
   .mimics .mimic-canvas { height: 62vh; }
 }
+.review { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.review .review-row { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 18px 1fr; gap: 8px; padding: 7px 8px; border-radius: 8px; font-size: 12px; line-height: 1.4; color: var(--muted); cursor: default; }
+.review .review-row:not(:disabled) { cursor: pointer; }
+.review .review-row:not(:disabled):hover { background: var(--tint); }
+.review b { display: block; color: var(--ink); font-weight: 600; font-size: 12.5px; }
+.review i { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; font: 700 11px/1 var(--font); font-style: normal; }
+.review-pass i { background: color-mix(in srgb, var(--vt-state-running) 18%, transparent); color: var(--vt-state-running); }
+.review-warn i { background: var(--vt-state-warning); color: var(--vt-state-on-warning); }
+.review-info i { background: var(--tint); color: var(--muted); }

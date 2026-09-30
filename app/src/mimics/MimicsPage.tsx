@@ -12,6 +12,7 @@ import {
   parseScene,
   placeItem,
   renderSceneSvg,
+  reviewScene,
   sceneBounds,
   SCENE_SCHEMA,
   slugify,
@@ -263,6 +264,9 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
     }
   };
 
+  const review = useMemo(() => reviewScene(scene, { style, theme, tokens: design.tokens }), [scene, style, theme, design.tokens]);
+  const warnings = review.filter((f) => f.level === "warn").length;
+
   const gen = item ? getGenerator(item.generator, item.version) ?? getGenerator(item.generator) : undefined;
   const hasPorts = scene.items.length > 1;
 
@@ -411,7 +415,30 @@ export function MimicsPage({ design, code, notify }: { design: Design; code?: st
           </Section>
         )}
 
-        <Section step="4" title="Export">
+        <Section step="4" title="HMI review" aside={warnings ? `${warnings} to look at` : "looks good"}>
+          <ul className="review">
+            {review.map((f) => (
+              <li key={f.id} className={`review-${f.level}`}>
+                <button
+                  type="button"
+                  className="review-row"
+                  disabled={!f.items?.length}
+                  onClick={() => f.items?.[0] && (setView("2d"), setSel({ kind: "item", id: f.items[0] }))}
+                  title={f.items?.length ? "Select the first item this is about" : undefined}
+                >
+                  <i aria-hidden="true">{f.level === "pass" ? "✓" : f.level === "warn" ? "!" : "i"}</i>
+                  <span>
+                    <b>{f.title}</b>
+                    {f.detail}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="hint">A design aid based on high-performance HMI practice, not a compliance check.</p>
+        </Section>
+
+        <Section step="5" title="Export">
           <button className="primary" onClick={() => downloadBlob(new Blob([staticSvg()], { type: "image/svg+xml" }), `${base}.svg`)}>
             <Icon name="download" /> Download mimic SVG
           </button>
