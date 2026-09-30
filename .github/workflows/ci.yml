@@ -7,23 +7,14 @@ permissions:
   contents: read
 jobs:
   check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm gallery:check
-      - run: pnpm build
-      - run: pnpm build:lib
+    uses: Grindstone-Systems/.github/.github/workflows/check.yml@main
+    with:
+      run: |
+        pnpm typecheck
+        pnpm test
+        pnpm gallery:check
+        pnpm build
+        pnpm build:lib
   oic-profile:
     # The listing, checked with OIC's own importer and Charter preflight.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: open-industrial-collective/website/profile-check@main
+    uses: Grindstone-Systems/.github/.github/workflows/oic-profile.yml@main
