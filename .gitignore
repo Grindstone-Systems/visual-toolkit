@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-lib/
+.vite/
+coverage/
+*.tsbuildinfo
+.DS_Store
+examples/out/
+
+# Internal planning documents (kept local, not published)
+docs/sources/
+.claude/worktrees/

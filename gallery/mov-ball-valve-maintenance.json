@@ -1,0 +1,22 @@
+{
+  "title": "Motor-operated ball valve",
+  "author": "Grindstone-Systems",
+  "description": "Outline style for P&ID-like overviews, in maintenance.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "valve.two-way",
+    "version": 0,
+    "params": {
+      "body": "ball",
+      "actuator": "motor",
+      "orientation": "vertical",
+      "flanges": true,
+      "label": "MOV-12"
+    },
+    "style": "outline",
+    "theme": "light",
+    "state": "maintenance"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "title": "Screw compressor skid, warning",
+  "author": "Grindstone-Systems",
+  "description": "Open-skid rotary-screw air compressor with air-cooled oil cooler, in warning state.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "compressor.air",
+    "version": 0,
+    "params": {
+      "package": "skid",
+      "cooling": "air",
+      "cooler": "right",
+      "detail": "standard",
+      "label": "C-701"
+    },
+    "style": "high-performance",
+    "theme": "dark",
+    "state": "warning"
+  }
+}

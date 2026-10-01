@@ -1,0 +1,23 @@
+{
+  "title": "Transfer pump",
+  "author": "Grindstone-Systems",
+  "description": "Coupled end-suction pump, modern flat, running.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "pump.centrifugal",
+    "version": 0,
+    "params": {
+      "discharge": "top",
+      "inlet": "left",
+      "driver": "motor",
+      "base": true,
+      "detail": "standard",
+      "label": "P-101"
+    },
+    "style": "modern-flat",
+    "theme": "light",
+    "state": "running"
+  }
+}

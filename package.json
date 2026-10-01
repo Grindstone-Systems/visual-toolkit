@@ -1,0 +1,76 @@
+{
+  "name": "visual-toolkit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Visual Toolkit by Grindstone Systems: create state-aware, themable industrial symbols and export clean SVG.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "module": "./dist-lib/visual-toolkit.js",
+  "types": "./dist-lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist-lib/types/index.d.ts",
+      "import": "./dist-lib/visual-toolkit.js"
+    },
+    "./element": {
+      "types": "./dist-lib/types/element.d.ts",
+      "import": "./dist-lib/vt-symbol.js"
+    },
+    "./vt-symbol.iife.js": "./dist-lib/vt-symbol.iife.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist-lib",
+    "docs/EMBED.md"
+  ],
+  "sideEffects": [
+    "./dist-lib/vt-symbol.js",
+    "./dist-lib/vt-symbol.iife.js",
+    "./lib/element.ts"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:lib": "tsx scripts/build-lib.ts",
+    "build:pages": "pnpm build && tsx scripts/build-lib.ts --pages",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "gallery:check": "tsx scripts/check-gallery.ts",
+    "render:examples": "tsx scripts/render-examples.ts",
+    "check": "pnpm typecheck && pnpm test && pnpm gallery:check && pnpm build && pnpm build:lib",
+    "oic:media": "tsx scripts/oic-media.ts",
+    "oic:check": "tsx scripts/oic-check.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.6",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "ajv": "^8.20.0",
+    "gltf-validator": "2.0.0-dev.3.10",
+    "happy-dom": "^20.14.5",
+    "puppeteer-core": "^25.12.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.1",
+    "vitest": "^3.2.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

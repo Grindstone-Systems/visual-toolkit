@@ -1,0 +1,23 @@
+{
+  "title": "Carton conveyor",
+  "author": "Grindstone-Systems",
+  "description": "Head-driven belt conveyor carrying cartons, dark theme.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "conveyor.belt",
+    "version": 0,
+    "params": {
+      "length": 6,
+      "direction": "right",
+      "drive": "head",
+      "load": "boxes",
+      "supports": true,
+      "label": "CV-401"
+    },
+    "style": "modern-flat",
+    "theme": "dark",
+    "state": "running"
+  }
+}

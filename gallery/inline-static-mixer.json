@@ -1,0 +1,24 @@
+{
+  "title": "Inline static mixer",
+  "author": "Grindstone-Systems",
+  "description": "Six-element DN 80 static mixer with dosing quill, modern flat, running.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "mixer.static",
+    "version": 0,
+    "params": {
+      "elements": 6,
+      "size": "80",
+      "ends": "flanged",
+      "orientation": "horizontal",
+      "injection": true,
+      "supports": true,
+      "label": "MX-301"
+    },
+    "style": "modern-flat",
+    "theme": "light",
+    "state": "running"
+  }
+}

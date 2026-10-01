@@ -1,0 +1,24 @@
+{
+  "title": "Pressure transmitter PIT-101",
+  "author": "Grindstone-Systems",
+  "description": "Field-mounted indicating pressure transmitter with process tap, high-performance, normal.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "instrument.transmitter",
+    "version": 0,
+    "params": {
+      "function": "PIT",
+      "loop": "101",
+      "mounting": "field",
+      "symbol": "discrete",
+      "display": true,
+      "tap": true,
+      "label": ""
+    },
+    "style": "high-performance",
+    "theme": "light",
+    "state": "normal"
+  }
+}

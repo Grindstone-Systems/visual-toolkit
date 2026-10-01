@@ -1,0 +1,22 @@
+{
+  "title": "Belt-driven exhaust blower",
+  "author": "Grindstone-Systems",
+  "description": "Centrifugal blower with top discharge and belt drive, wheel turning while running.",
+  "license": "CC0-1.0",
+  "created": "2026-09-29",
+  "recipe": {
+    "schema": "vt.recipe/v0",
+    "generator": "blower.centrifugal",
+    "version": 0,
+    "params": {
+      "discharge": "up",
+      "rotation": "cw",
+      "drive": "belt",
+      "detail": "standard",
+      "label": "B-601"
+    },
+    "style": "modern-flat",
+    "theme": "light",
+    "state": "running"
+  }
+}

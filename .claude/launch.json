@@ -1,0 +1,41 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "builder",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "dev",
+        "--port",
+        "5178",
+        "--strictPort"
+      ],
+      "port": 5178
+    },
+    {
+      "name": "builder-alt",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "dev",
+        "--port",
+        "5181",
+        "--strictPort"
+      ],
+      "port": 5181
+    },
+    {
+      "name": "contact-sheet",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4310",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "examples/out"
+      ],
+      "port": 4310
+    }
+  ]
+}
